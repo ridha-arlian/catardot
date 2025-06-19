@@ -18,6 +18,16 @@ datasource db {
 model User {
   id        Int       @id @default(autoincrement())
   email     String    @unique
-  name      String?   
+  name      String?
   createdAt DateTime  @default(now())
+}
+
+model Story {
+  id          String    @id @default(uuid())
+  content     String
+  storyDate   DateTime  @db.Date
+  createdAt   DateTime  @default(now())
+  userId      String
+  
+  @@unique([userId, storyDate])
 }
