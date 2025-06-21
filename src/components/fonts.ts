@@ -36,5 +36,27 @@ export const textStyles = defineTextStyles({
       textDecoration: 'none',
       textTransform: 'none',
     }
+  },
+  rubik: {
+    description: 'For numbering',
+    value:{
+      fontFamily: 'var(--font-rubik)',
+      fontWeight: '500',
+      fontSize: '60px',
+      lineHeight: '1',
+      textDecoration: 'none',
+      textTransform: 'none',
+    }
+  },
+  rubikSecond: {
+    description: 'For text',
+    value:{
+      fontFamily: 'var(--font-rubik)',
+      fontWeight: '400',
+      fontSize: '35px',
+      letterSpacing: '0.1em',
+      textDecoration: 'none',
+      textTransform: 'none',
+    }
   }
 })

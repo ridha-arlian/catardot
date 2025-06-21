@@ -1,5 +1,5 @@
 'use client'
-// import { useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { Box, Heading, Container, Button, Flex, Spinner } from '@chakra-ui/react'
 import { useState, Suspense, lazy } from "react";
 // import LoginModal from '../../modals/LoginModal'
@@ -12,11 +12,11 @@ const IconFallback = () => (
 
 export function LandingPage() {
   const [hovered, setHovered] = useState(false);
-  // const router = useRouter()
+  const router = useRouter()
 
-  // const handleDemoClick = () => {
-  //   router.push('/demo')
-  // }
+  const handleGoogleLogin = () => {
+    router.push('/story')
+  }
 
   return (
     <>
@@ -32,11 +32,11 @@ export function LandingPage() {
                 {/* <Button variant='solid' colorPalette="brown" color="black" fontSize="18px" px="30px" py="15px" _hover={{ boxShadow: "0px 14px 30px -15px rgba(0, 0, 0, 0.75)" }} width={{ base: "80%", md: "auto" }} margin={{ base: "0 auto", md: "unset" }} onClick={handleDemoClick} aria-label="Try a demo of our application" tabIndex={0} role="button">
                   Try a Demo
                 </Button> */}
-                <Button variant="outline" px="2" py="7" rounded="lg" justifyContent="center" _hover={{ bg: "brown.500", color: "black" }} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} aria-label="Login with Google" tabIndex={0}>
+                <Button variant="outline" px="2" py="7" rounded="lg" justifyContent="center" _hover={{ bg: "brown.500", color: "black" }} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} onClick={handleGoogleLogin} aria-label="Login with Google" tabIndex={0}>
                   <Suspense fallback={<IconFallback />}>
                     <GoogleIcon isHovered={hovered}/>
                   </Suspense>
-                  Sign-in with Google 
+                  Continue with Google 
                 </Button>
                 {/* <LoginModal /> */}
               </Flex>

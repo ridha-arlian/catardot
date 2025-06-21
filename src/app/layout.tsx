@@ -1,10 +1,16 @@
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono, Gugi, Open_Sans, Roboto_Mono } from 'next/font/google'
+import { Geist, Geist_Mono, Gugi, Open_Sans, Roboto_Mono, Rubik } from 'next/font/google'
 import { Provider } from '../components/ui/provider'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
+});
+
+const rubik = Rubik({
+  variable: '--font-rubik',
+  subsets: ['latin'],
+  
 });
 
 const gugi = Gugi({
@@ -40,7 +46,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} ${gugi.variable} ${open.variable} ${robotoMono.variable}`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${gugi.variable} ${open.variable} ${robotoMono.variable} ${rubik.variable}`} >
         <Provider>
           {children}
         </Provider>
