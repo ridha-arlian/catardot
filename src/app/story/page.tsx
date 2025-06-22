@@ -41,7 +41,7 @@ export default function StoryPage() {
 
         <Flex gap={8} direction={{ base: 'column', lg: 'row' }} mt="5">
           {/* Form Section */}
-          <StoryWidget  selectedDate={selectedDate} onDateChange={handleDateChange}/>
+          <StoryWidget selectedDate={selectedDate} onDateChange={handleDateChange}/>
 
           {/* Sidebar */}
           <Box flex="1">

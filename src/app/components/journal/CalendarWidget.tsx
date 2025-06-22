@@ -93,7 +93,7 @@ export const CalendarWidget = ({ value, onChange, locale = 'id-ID' }: CalendarPr
       {/* Calendar Header */}
       <Box bg={headerBg} px={4} py={3}>
         <HStack justify="space-between" align="center">
-          <Button size="xl" variant="ghost" onClick={goToPrevMonth} color={dayNameColor} _hover={{ bg: hoverBg }}>
+          <Button size="md" variant="ghost" onClick={goToPrevMonth} color={dayNameColor} _hover={{ bg: hoverBg }}>
             <FiChevronLeft />
           </Button>
           
@@ -106,14 +106,14 @@ export const CalendarWidget = ({ value, onChange, locale = 'id-ID' }: CalendarPr
             </Text>
           </VStack>
           
-          <Button size="xl" variant="ghost" onClick={goToNextMonth} color={dayNameColor} _hover={{ bg: hoverBg }}>
+          <Button size="md" variant="ghost" onClick={goToNextMonth} color={dayNameColor} _hover={{ bg: hoverBg }}>
             <FiChevronRight />
           </Button>
         </HStack>
         
         {/* Today Button */}
         <Box textAlign="center" mt={2}>
-          <Button size="md" variant="outline" onClick={goToToday} colorScheme="blue">
+          <Button size="sm" variant="outline" onClick={goToToday} colorScheme="blue">
             Hari Ini
           </Button>
         </Box>
@@ -124,18 +124,18 @@ export const CalendarWidget = ({ value, onChange, locale = 'id-ID' }: CalendarPr
         {/* Day Names Header */}
         <HStack justify="flex-start" gap="4" mb={3} width="100%">
           {dayNames.map((dayName) => (
-            <Box key={dayName} width="36px" textStyle="rubikFive" textAlign="center" color={dayNameColor} py={1}>
+            <Box key={dayName} width="100%" textStyle="rubikFive" textAlign="center" color={dayNameColor} py={1}>
               {dayName}
             </Box>
           ))}
         </HStack>
         
         {/* Calendar Grid */}
-        <VStack gap={1} height="220px">
+        <VStack gap={1} height="190px">
           {Array.from({ length: Math.ceil(days.length / 7) }, (_, weekIndex) => (
             <HStack key={weekIndex} justify="flex-start" gap="4" width="100%">
               {days.slice(weekIndex * 7, (weekIndex + 1) * 7).map((day, dayIndex) => (
-                <Box key={`${weekIndex}-${dayIndex}`} width="36px" height="36px" display="flex" alignItems="center" justifyContent="center" borderRadius="md" cursor={day ? "pointer" : "default"} textStyle="rubikSix" fontWeight={isSelected(day) || isToday(day) ? "bold" : "normal"} bg={ day && isSelected(day) ? selectedBg : day && isToday(day) ? todayBg : "transparent"} color={ day && isSelected(day) ? selectedColor : day && isToday(day) ? todayColor : day ? dayColor : "transparent"} _hover={day ? { bg: isSelected(day)  ? selectedBg : isToday(day) ? todayBg : hoverBg } : {}} transition="all 0.2s" onClick={() => day && selectDate(day)}>
+                <Box key={`${weekIndex}-${dayIndex}`} width="36px" height="30px" display="flex" alignItems="center" justifyContent="center" borderRadius="md" cursor={day ? "pointer" : "default"} textStyle="rubikSix" fontWeight={isSelected(day) || isToday(day) ? "bold" : "normal"} bg={ day && isSelected(day) ? selectedBg : day && isToday(day) ? todayBg : "transparent"} color={ day && isSelected(day) ? selectedColor : day && isToday(day) ? todayColor : day ? dayColor : "transparent"} _hover={day ? { bg: isSelected(day)  ? selectedBg : isToday(day) ? todayBg : hoverBg } : {}} transition="all 0.2s" onClick={() => day && selectDate(day)}>
                   {day}
                 </Box>
               ))}
