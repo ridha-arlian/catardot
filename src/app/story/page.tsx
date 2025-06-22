@@ -5,27 +5,15 @@ import { useState } from 'react'
 import { FiCalendar, FiClock, FiEdit3, FiSave, FiFileText } from 'react-icons/fi'
 import { TimeJournal } from '../components/journal/time'
 import { Calendar } from '../components/journal/calendar'
+import { TimeWidget } from '../components/journal/TimeWidget'
+import { CalendarWidget } from '../components/journal/CalendarWidget'
 
 export default function StoryPage() {
-  const [storyTitle, setStoryTitle] = useState('')
-  const [storyContent, setStoryContent] = useState('')
-  const [storyMoment, setStoryMoment] = useState('')
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
   const [calendarDate, setCalendarDate] = useState<Date>(new Date())
 
   const bgColor = useColorModeValue('gray.50', 'gray.900')
   const cardBg = useColorModeValue('white', 'gray.800')
-
-  const handleSaveStory = () => {
-    // Logic untuk menyimpan story
-    console.log({
-      title: storyTitle,
-      content: storyContent,
-      moment: storyMoment,
-      date: selectedDate,
-      calendarDate: calendarDate
-    })
-  }
 
   const handleCalendarChange = (date: Date) => {
     setCalendarDate(date)
@@ -46,7 +34,7 @@ export default function StoryPage() {
       <Container maxW="container.lg">
         <HStack direction="row">
           {/* Widget Time */}
-          <TimeJournal/>
+          <TimeWidget/>
           <Box width="1px" bg="blue.normal" borderRadius="full" flexShrink={0} alignSelf="stretch"/>
           <Box flex="1" display="flex" ms="3">
             <VStack align="start">
@@ -170,7 +158,7 @@ export default function StoryPage() {
                   </Heading>
                   {/* Calendar */}
                   <Box display="flex" justifyContent="center">
-                    <Calendar value={calendarDate} onChange={handleCalendarChange} locale="id-ID"/>
+                    <CalendarWidget value={calendarDate} onChange={handleCalendarChange} locale="id-ID"/>
                   </Box>
                 </Card.Body>
               </Card.Root>

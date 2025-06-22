@@ -11,7 +11,7 @@ interface CalendarProps {
   locale?: string
 }
 
-export const Calendar = ({ value, onChange, locale = 'id-ID' }: CalendarProps) => {
+export const CalendarWidget = ({ value, onChange, locale = 'id-ID' }: CalendarProps) => {
   const [currentDate, setCurrentDate] = useState(value || new Date())
   const today = new Date()
   

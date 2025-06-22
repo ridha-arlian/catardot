@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { Box, Text, HStack, VStack } from '@chakra-ui/react'
 import { useColorModeValue } from "@/components/ui/color-mode"
 
-export const TimeJournal = () => {
+export const TimeWidget = () => {
   const IOSBlinkingColon = ({ show }: { show: boolean }) => (
   <Text opacity={show ? 1 : 0.2} transition="opacity 0.1s ease-in-out" fontSize="inherit" fontWeight="inherit" color="inherit">
     :
