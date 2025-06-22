@@ -1,5 +1,5 @@
 'use client'
-import { Box, Container, Heading, Textarea, Button, VStack, HStack, Text, Input, Card, Flex, Status, Badge } from '@chakra-ui/react'
+import { Box, Container, Heading, VStack, HStack, Card, Flex } from '@chakra-ui/react'
 import { useColorModeValue } from "@/components/ui/color-mode"
 import { useState } from 'react'
 import { FiCalendar, FiClock, FiEdit3, FiSave, FiFileText } from 'react-icons/fi'
@@ -7,6 +7,7 @@ import { TimeJournal } from '../components/journal/time'
 import { Calendar } from '../components/journal/calendar'
 import { TimeWidget } from '../components/journal/TimeWidget'
 import { CalendarWidget } from '../components/journal/CalendarWidget'
+import { StatusWidget } from '../components/journal/StatusWidget'
 
 export default function StoryPage() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
@@ -36,28 +37,7 @@ export default function StoryPage() {
           {/* Widget Time */}
           <TimeWidget/>
           <Box width="1px" bg="blue.normal" borderRadius="full" flexShrink={0} alignSelf="stretch"/>
-          <Box flex="1" display="flex" ms="3">
-            <VStack align="start">
-              <Card.Root  bg={cardBg} shadow="md" width="100%" borderLeft="4px solid" borderLeftColor="orange.500">
-                <Card.Body py={4}>
-                  {/* Status Header */}
-                  <HStack>
-                    <Status.Root size="lg" colorPalette="red">
-                      <Status.Indicator />
-                    </Status.Root>
-                    <Box color="orange.500" fontSize="xl"/>
-                    <Text fontWeight="semibold" color="orange.600" fontSize="lg">
-                      Belum Menulis Jurnal
-                    </Text>
-                  </HStack>
-                  {/* Status Message */}
-                  <Text fontSize="md" color={useColorModeValue("gray.600", "gray.400")} lineHeight="1.5">
-                    Kamu belum menulis jurnal harian hari ini.
-                  </Text>
-                </Card.Body>
-              </Card.Root>
-            </VStack>
-          </Box>
+          <StatusWidget/>
         </HStack>
 
         <Flex gap={8} direction={{ base: 'column', lg: 'row' }} mt="5">
