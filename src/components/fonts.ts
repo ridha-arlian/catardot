@@ -58,5 +58,64 @@ export const textStyles = defineTextStyles({
       textDecoration: 'none',
       textTransform: 'none',
     }
+  },
+  rubikThird: {
+    description: 'For calendar header',
+    value:{
+      fontFamily: 'var(--font-rubik)',
+      fontWeight: '600',
+      fontSize: '25px',
+      lineHeight: '1.2',
+      letterSpacing: '0.1em',
+      textDecoration: 'none',
+      textTransform: 'none',
+    }
+  },
+  rubikFour: {
+    description: 'For calendar number',
+    value:{
+      fontFamily: 'var(--font-rubik)',
+      fontWeight: '400',
+      fontSize: '20px',
+      lineHeight: '1',
+      letterSpacing: '0.1em',
+      textDecoration: 'none',
+      textTransform: 'none',
+    }
+  },
+  rubikFive: {
+    description: 'For calendar day',
+    value:{
+      fontFamily: 'var(--font-rubik)',
+      fontWeight: '400',
+      fontSize: '16px',
+      lineHeight: '1',
+      textDecoration: 'none',
+      textTransform: 'none',
+    }
+  },
+  rubikSix: {
+    description: 'For calendar date',
+    value:{
+      fontFamily: 'var(--font-rubik)',
+      fontWeight: '300',
+      fontSize: '15px',
+      lineHeight: '1',
+      letterSpacing: '0.1em',
+      textDecoration: 'none',
+      textTransform: 'none',
+    }
+  },
+  rubikSeven: {
+    description: 'For calendar footer',
+    value:{
+      fontFamily: 'var(--font-rubik)',
+      fontWeight: '300',
+      fontSize: '15px',
+      lineHeight: '1',
+      letterSpacing: '0.1em',
+      textDecoration: 'none',
+      textTransform: 'none',
+    }
   }
 })

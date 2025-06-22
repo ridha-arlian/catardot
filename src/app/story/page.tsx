@@ -2,14 +2,16 @@
 import { Box, Container, Heading, Textarea, Button, VStack, HStack, Text, Input, Card, Flex, Status, Badge } from '@chakra-ui/react'
 import { useColorModeValue } from "@/components/ui/color-mode"
 import { useState } from 'react'
-import { FiCalendar, FiClock, FiStar, FiEdit3, FiSave, FiFileText } from 'react-icons/fi'
+import { FiCalendar, FiClock, FiEdit3, FiSave, FiFileText } from 'react-icons/fi'
 import { TimeJournal } from '../components/journal/time'
+import { Calendar } from '../components/journal/calendar'
 
 export default function StoryPage() {
   const [storyTitle, setStoryTitle] = useState('')
   const [storyContent, setStoryContent] = useState('')
   const [storyMoment, setStoryMoment] = useState('')
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
+  const [calendarDate, setCalendarDate] = useState<Date>(new Date())
 
   const bgColor = useColorModeValue('gray.50', 'gray.900')
   const cardBg = useColorModeValue('white', 'gray.800')
@@ -20,8 +22,23 @@ export default function StoryPage() {
       title: storyTitle,
       content: storyContent,
       moment: storyMoment,
-      date: selectedDate
+      date: selectedDate,
+      calendarDate: calendarDate
     })
+  }
+
+  const handleCalendarChange = (date: Date) => {
+    setCalendarDate(date)
+    setSelectedDate(date.toISOString().split('T')[0])
+  }
+
+  const handleDateInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newDate = e.target.value
+    setSelectedDate(newDate)
+    // Sync dengan calendar
+    if (newDate) {
+      setCalendarDate(new Date(newDate))
+    }
   }
 
   return (
@@ -65,13 +82,13 @@ export default function StoryPage() {
                   <HStack gap="4">
                     <Box flex="1">
                       <Text mb={2} fontWeight="medium" color="gray.700">
-                        <Box as={FiCalendar} display="inline" mr={2} />
+                        <Box as={FiCalendar} display="inline" mr={2}/>
                         Tanggal
                       </Text>
                       <Input
                         type="date"
                         value={selectedDate}
-                        onChange={(e) => setSelectedDate(e.target.value)}
+                        onChange={handleDateInputChange}
                       />
                     </Box>
                     <Box flex="1">
@@ -142,30 +159,19 @@ export default function StoryPage() {
             </Card.Root>
           </Box>
 
-          {/* Sidebar - Tips & Recent Stories */}
+          {/* Sidebar */}
           <Box flex="1">
             <VStack gap="6" align="stretch">
-              {/* Writing Tips */}
-              <Card.Root bg={cardBg} shadow="md">
+              <Card.Root bg={cardBg} shadow="md" mt="-40">
                 <Card.Body>
-                  <Heading size="md" mb={4} color="orange.500">
-                    <Box as={FiStar} display="inline" mr={2} />
-                    Tips Menulis
+                  <Heading size="md" mb={4} color="blue.500">
+                    <Box as={FiCalendar} display="inline" mr={2} />
+                    Kalender
                   </Heading>
-                  <VStack align="start" gap="3">
-                    <Text fontSize="sm" color="gray.600">
-                      • Fokus pada detail kecil yang bermakna
-                    </Text>
-                    <Text fontSize="sm" color="gray.600">
-                      • Tuliskan emosi yang Anda rasakan
-                    </Text>
-                    <Text fontSize="sm" color="gray.600">
-                      • Ceritakan siapa yang terlibat
-                    </Text>
-                    <Text fontSize="sm" color="gray.600">
-                      • Jelaskan mengapa momen ini penting
-                    </Text>
-                  </VStack>
+                  {/* Calendar */}
+                  <Box display="flex" justifyContent="center">
+                    <Calendar value={calendarDate} onChange={handleCalendarChange} locale="id-ID"/>
+                  </Box>
                 </Card.Body>
               </Card.Root>
 
