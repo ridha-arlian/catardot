@@ -1,0 +1,62 @@
+export const PROMPT = [
+  `Hari ini hal kecil apa yang paling berkesan?`,
+  `Siapa yang membuatmu tersenyum hari ini?`,
+  `Apa momen paling lucu hari ini?`,
+  `Hal baru apa yang kamu sadari hari ini?`,
+  `Apa hal sederhana yang kamu syukuri hari ini?`,
+  `Kalau ada satu hal yang ingin kamu ulang dari hari ini, apa itu?`,
+  `Apa satu kejadian yang membuatmu berpikir?`,
+  `Apa yang kamu lihat di jalan yang menarik perhatian?`,
+  `Apa percakapan paling menyenangkan hari ini?`,
+  `Ada suara atau lagu apa yang mengisi harimu?`,
+  `Apa aroma atau makanan yang kamu nikmati hari ini?`,
+  `Hal kecil apa yang bikin kamu merasa damai?`,
+  `Apa kejadian kecil yang bikin kamu kesal tapi lucu?`,
+  `Siapa yang kamu temui hari ini dan mengesankan?`,
+  `Apa yang membuatmu berhenti sejenak dan merenung?`,
+  `Hari ini kamu belajar apa dari dirimu sendiri?`,
+  `Apa yang kamu rasakan saat bangun tidur tadi?`,
+  `Apa momen paling tenang hari ini?`,
+  `Apa warna yang kamu lihat terus hari ini?`,
+  `Kalau hari ini bisa dijadikan film, adegan apa yang paling menonjol?`,
+  `Ada hal yang buatmu teringat masa kecil?`,
+  `Siapa yang paling kamu pikirkan hari ini?`,
+  `Apa hal kecil yang kamu selesaikan dan bikin bangga?`,
+  `Apa satu kata yang menggambarkan harimu?`,
+  `Apa kejutan kecil yang terjadi hari ini?`,
+  `Apa yang kamu lewatkan hari ini tapi tidak menyesal?`,
+  `Apa yang membuatmu merasa "hidup" hari ini?`,
+  `Apakah kamu menemukan keindahan dalam hal biasa hari ini?`,
+  `Siapa yang kamu lihat hari ini tapi tak sempat menyapa?`,
+  `Hal bodoh apa yang terjadi tapi bikin kamu ketawa?`,
+  `Apa yang kamu harapkan terjadi, tapi tidak jadi?`,
+  `Kalau harimu diberi judul, apa judulnya?`,
+  `Apa hal terkecil yang membuatmu merasa nyaman?`,
+  `Apa keputusan kecil yang kamu ambil hari ini?`,
+  `Apakah kamu membantu seseorang hari ini?`,
+  `Apa isi pikiranmu saat sedang tidak melakukan apa-apa?`,
+  `Apa satu momen yang ingin kamu simpan selamanya?`,
+  `Apa yang kamu rasakan saat melihat langit hari ini?`,
+  `Apa hal tak terduga yang membuatmu tersenyum?`,
+  `Apakah kamu merasa didengarkan hari ini?`,
+  `Siapa yang kamu lihat diam-diam hari ini?`,
+  `Apa yang kamu lakukan untuk dirimu sendiri hari ini?`,
+  `Apa momen "oh iya!" hari ini?`,
+  `Hal apa yang hari ini terasa lebih mudah dari biasanya?`,
+  `Apa hal yang membuatmu lupa waktu hari ini?`,
+  `Apakah kamu merasa bangga pada dirimu hari ini?`,
+  `Apa sesuatu yang tidak kamu katakan, tapi ingin kamu ucapkan?`,
+  `Ada hal yang kamu tunda hari ini?`,
+  `Kalau ada satu foto dari hari ini, apa yang kamu ingin foto itu tangkap?`,
+  `Apa yang ingin kamu kirim sebagai pesan untuk dirimu 10 tahun ke depan dari hari ini?`,
+]
+
+export const getRandomPrompt = (array: string[]): string => {
+  return array[Math.floor(Math.random() * array.length)]
+}
+
+export const getRandomPrompts = () => {
+  return {
+    promptContent: getRandomPrompt(PROMPT),
+  }
+}

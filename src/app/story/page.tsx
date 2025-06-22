@@ -7,6 +7,7 @@ import { TimeWidget } from '../components/journal/TimeWidget'
 import { CalendarWidget } from '../components/journal/CalendarWidget'
 import { HistoryWidget } from '../components/journal/HistoryWidget'
 import { StatusWidget } from '../components/journal/StatusWidget'
+import { StoryWidget } from '../components/journal/StoryWidget'
 
 export default function StoryPage() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
@@ -40,90 +41,7 @@ export default function StoryPage() {
 
         <Flex gap={8} direction={{ base: 'column', lg: 'row' }} mt="5">
           {/* Form Section */}
-          <Box flex="2">
-            <Card.Root bg={cardBg} shadow="lg">
-              <Card.Body>
-                <VStack gap="6" align="stretch">
-                  {/* Date and Moment Selector */}
-                  <HStack gap="4">
-                    <Box flex="1">
-                      <Text mb={2} fontWeight="medium" color="gray.700">
-                        <Box as={FiCalendar} display="inline" mr={2}/>
-                        Tanggal
-                      </Text>
-                      <Input
-                        type="date"
-                        value={selectedDate}
-                        onChange={handleDateInputChange}
-                      />
-                    </Box>
-                    <Box flex="1">
-                      <Text mb={2} fontWeight="medium" color="gray.700">
-                        <Box as={FiClock} display="inline" mr={2} />
-                        Momen Spesial
-                      </Text>
-                      <Input
-                        placeholder="Contoh: Pagi hari, Saat makan siang..."
-                        value={storyMoment}
-                        onChange={(e) => setStoryMoment(e.target.value)}
-                      />
-                    </Box>
-                  </HStack>
-
-                  {/* Story Title */}
-                  <Box>
-                    <Text mb={2} fontWeight="medium" color="gray.700">
-                      <Box as={FiEdit3} display="inline" mr={2} />
-                      Judul Cerita
-                    </Text>
-                    <Input
-                      placeholder="Berikan judul untuk cerita hari ini..."
-                      value={storyTitle}
-                      onChange={(e) => setStoryTitle(e.target.value)}
-                      size="lg"
-                    />
-                  </Box>
-
-                  {/* Story Content */}
-                  <Box>
-                    <Text mb={2} fontWeight="medium" color="gray.700">
-                      <Box as={FiFileText} display="inline" mr={2} />
-                      Ceritakan Pengalaman Anda
-                    </Text>
-                    <Textarea
-                      placeholder="Apa yang terjadi hari ini? Siapa yang terlibat? Bagaimana perasaan Anda? Apa yang membuat momen ini spesial?
-
-                                              Contoh:
-                                              - Percakapan menarik dengan teman
-                                              - Pemandangan yang indah
-                                              - Pelajaran yang dipetik
-                                              - Emosi yang dirasakan..."
-                      value={storyContent}
-                      onChange={(e) => setStoryContent(e.target.value)}
-                      minH="300px"
-                      autoresize 
-                    />
-                  </Box>
-
-                  {/* Action Buttons */}
-                  <HStack gap="4" justify="flex-end">
-                    <Button variant="outline" colorScheme="gray">
-                      <FiSave />
-                      Simpan Draft
-                    </Button>
-                    <Button 
-                      colorScheme="blue" 
-                      onClick={handleSaveStory}
-                      data-disabled={!storyTitle || !storyContent}
-                    >
-                      <FiFileText />
-                      Publikasikan Cerita
-                    </Button>
-                  </HStack>
-                </VStack>
-              </Card.Body>
-            </Card.Root>
-          </Box>
+          <StoryWidget  selectedDate={selectedDate} onDateChange={handleDateChange}/>
 
           {/* Sidebar */}
           <Box flex="1">
