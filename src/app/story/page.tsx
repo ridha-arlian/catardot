@@ -2,11 +2,10 @@
 import { Box, Container, Heading, VStack, HStack, Card, Flex } from '@chakra-ui/react'
 import { useColorModeValue } from "@/components/ui/color-mode"
 import { useState } from 'react'
-import { FiCalendar, FiClock, FiEdit3, FiSave, FiFileText } from 'react-icons/fi'
-import { TimeJournal } from '../components/journal/time'
-import { Calendar } from '../components/journal/calendar'
+import { FiCalendar} from 'react-icons/fi'
 import { TimeWidget } from '../components/journal/TimeWidget'
 import { CalendarWidget } from '../components/journal/CalendarWidget'
+import { HistoryWidget } from '../components/journal/HistoryWidget'
 import { StatusWidget } from '../components/journal/StatusWidget'
 
 export default function StoryPage() {
@@ -21,8 +20,7 @@ export default function StoryPage() {
     setSelectedDate(date.toISOString().split('T')[0])
   }
 
-  const handleDateInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newDate = e.target.value
+  const handleDateChange = (newDate: string) => {
     setSelectedDate(newDate)
     // Sync dengan calendar
     if (newDate) {
@@ -143,40 +141,8 @@ export default function StoryPage() {
                 </Card.Body>
               </Card.Root>
 
-              {/* Prompt Ideas */}
-              <Card.Root bg={cardBg} shadow="md">
-                <Card.Body>
-                  <Heading size="md" mb={4} color="green.500">
-                    Ide Cerita
-                  </Heading>
-                  <VStack align="start" gap="2">
-                    <Badge colorScheme="blue" cursor="pointer" p={2} borderRadius="md">
-                      Percakapan menarik hari ini
-                    </Badge>
-                    <Badge colorScheme="green" cursor="pointer" p={2} borderRadius="md">
-                      Sesuatu yang membuat saya tersenyum
-                    </Badge>
-                    <Badge colorScheme="purple" cursor="pointer" p={2} borderRadius="md">
-                      Pelajaran yang saya dapat
-                    </Badge>
-                    <Badge colorScheme="orange" cursor="pointer" p={2} borderRadius="md">
-                      Momen tak terduga
-                    </Badge>
-                  </VStack>
-                </Card.Body>
-              </Card.Root>
-
-              {/* Word Count */}
-              <Card.Root bg={cardBg} shadow="md">
-                <Card.Body>
-                  <Text fontSize="sm" color="gray.600">
-                    Jumlah kata: {storyContent.split(' ').filter(word => word.length > 0).length}
-                  </Text>
-                  <Text fontSize="xs" color="gray.500" mt={1}>
-                    Target: 100-300 kata untuk cerita harian
-                  </Text>
-                </Card.Body>
-              </Card.Root>
+              {/* History */}
+              <HistoryWidget selectedDate={calendarDate}/>
             </VStack>
           </Box>
         </Flex>
