@@ -10,18 +10,9 @@ export const TimeWidget = () => {
   </Text>
   )
   const timeTextColor = useColorModeValue('gray.900', 'white')
-  // const dateTextColor = useColorModeValue('gray.600', 'gray.300')
 
   const [currentTime, setCurrentTime] = useState(new Date())
   const [showColon, setShowColon] = useState(true)
-
-  // const cardBg = useColorModeValue('white', 'gray.800')
-  // const iosCardBg = useColorModeValue('gray.50', 'gray.900')
-  // const borderColor = useColorModeValue('gray.200', 'gray.700')
-  // const gradientBg = useColorModeValue(
-  //   'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.4) 100%)',
-  //   'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)'
-  // )
   
   const formatTime = () => {
     const time = currentTime.toLocaleTimeString('en-US', {
