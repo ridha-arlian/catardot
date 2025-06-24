@@ -63,9 +63,9 @@ export const textStyles = defineTextStyles({
     description: 'For calendar header',
     value:{
       fontFamily: 'var(--font-rubik)',
-      fontWeight: '600',
-      fontSize: '25px',
-      lineHeight: '1.2',
+      fontWeight: '500',
+      fontSize: '20px',
+      // lineHeight: '1.2',
       letterSpacing: '0.1em',
       textDecoration: 'none',
       textTransform: 'none',
@@ -76,8 +76,8 @@ export const textStyles = defineTextStyles({
     value:{
       fontFamily: 'var(--font-rubik)',
       fontWeight: '400',
-      fontSize: '20px',
-      lineHeight: '1',
+      fontSize: '15px',
+      // lineHeight: '1',
       letterSpacing: '0.1em',
       textDecoration: 'none',
       textTransform: 'none',
@@ -88,8 +88,8 @@ export const textStyles = defineTextStyles({
     value:{
       fontFamily: 'var(--font-rubik)',
       fontWeight: '400',
-      fontSize: '16px',
-      lineHeight: '1',
+      fontSize: '13px',
+      // lineHeight: '1',
       textDecoration: 'none',
       textTransform: 'none',
     }
@@ -99,8 +99,8 @@ export const textStyles = defineTextStyles({
     value:{
       fontFamily: 'var(--font-rubik)',
       fontWeight: '300',
-      fontSize: '15px',
-      lineHeight: '1',
+      fontSize: '12px',
+      // lineHeight: '1',
       letterSpacing: '0.1em',
       textDecoration: 'none',
       textTransform: 'none',
@@ -111,8 +111,8 @@ export const textStyles = defineTextStyles({
     value:{
       fontFamily: 'var(--font-rubik)',
       fontWeight: '300',
-      fontSize: '15px',
-      lineHeight: '1',
+      fontSize: '13px',
+      // lineHeight: '1',
       letterSpacing: '0.1em',
       textDecoration: 'none',
       textTransform: 'none',

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono, Gugi, Open_Sans, Roboto_Mono, Rubik } from 'next/font/google'
 import { Provider } from '../components/ui/provider'
+import { Toaster } from '../components/ui/toaster'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -45,6 +46,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body className={`${geistSans.variable} ${geistMono.variable} ${gugi.variable} ${open.variable} ${robotoMono.variable} ${rubik.variable}`} >
         <Provider>
           {children}
+          <Toaster />
         </Provider>
       </body>
     </html>
