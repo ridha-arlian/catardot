@@ -2,7 +2,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '../../../../generated/prisma'
 
-const prisma = new PrismaClient()
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined
+}
+
+const prisma = globalForPrisma.prisma ?? new PrismaClient()
+
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
 
 // GET - Mengambil story berdasarkan tanggal atau semua story user
 export async function GET(request: NextRequest) {
@@ -15,6 +21,14 @@ export async function GET(request: NextRequest) {
 
     if (!userId) {
       return NextResponse.json({ error: 'User ID diperlukan' }, { status: 400 })
+    }
+
+    if (year && (isNaN(Number(year)) || Number(year) < 2020 || Number(year) > 2030)) {
+      return NextResponse.json({ error: 'Invalid year parameter' }, { status: 400 })
+    }
+
+    if (month && (isNaN(Number(month)) || Number(month) < 1 || Number(month) > 12)) {
+      return NextResponse.json({ error: 'Invalid month parameter (1-12)' }, { status: 400 })
     }
 
     let stories
@@ -30,23 +44,22 @@ export async function GET(request: NextRequest) {
         }
       })
     } else if (year && month) {
-      // Get stories for specific month - OPTIMASI BARU
       const startDate = new Date(`${year}-${month.padStart(2, '0')}-01T00:00:00.000Z`)
-      const endDate = new Date(parseInt(year), parseInt(month), 0) // Last day of month
-      const endDateString = `${year}-${month.padStart(2, '0')}-${endDate.getDate()}T23:59:59.999Z`
+      const nextMonth = parseInt(month) === 12 ? 1 : parseInt(month) + 1
+      const nextYear = parseInt(month) === 12 ? parseInt(year) + 1 : parseInt(year)
+      const endDate = new Date(`${nextYear}-${nextMonth.toString().padStart(2, '0')}-01T00:00:00.000Z`)
       
       stories = await prisma.story.findMany({
         where: { 
           userId: userId,
           storyDate: {
             gte: startDate,
-            lte: new Date(endDateString)
+            lt: endDate  // Pakai lt bukan lte
           }
         },
         orderBy: { storyDate: 'asc' }
       })
     } else {
-      // Get recent stories (fallback)
       stories = await prisma.story.findMany({
         where: { userId: userId },
         orderBy: { storyDate: 'desc' },
@@ -60,11 +73,13 @@ export async function GET(request: NextRequest) {
       ...(Array.isArray(stories) && { count: stories.length })
     })
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error mengambil stories:', error)
     return NextResponse.json({ error: 'Gagal mengambil data jurnal' }, { status: 500 })
   } finally {
-    await prisma.$disconnect()
+    if (process.env.NODE_ENV !== 'production') {
+      await prisma.$disconnect()
+    }
   }
 }
 
@@ -105,7 +120,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ error: 'Gagal menyimpan jurnal. Silakan coba lagi.' }, { status: 500 })
   } finally {
-    await prisma.$disconnect()
+    if (process.env.NODE_ENV !== 'production') {
+      await prisma.$disconnect()
+    }
   }
 }
 
@@ -153,6 +170,8 @@ export async function PUT(request: NextRequest) {
     console.error('Error updating story:', error)
     return NextResponse.json({ error: 'Gagal memperbarui jurnal' }, { status: 500 })
   } finally {
-    await prisma.$disconnect()
+    if (process.env.NODE_ENV !== 'production') {
+      await prisma.$disconnect()
+    }
   }
 }
