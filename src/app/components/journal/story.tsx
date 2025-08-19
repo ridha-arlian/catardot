@@ -4,9 +4,11 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useSession } from "next-auth/react"
 import { BookOpen, Sparkles } from "lucide-react"
 import { toaster } from "@/components/ui/toaster"
 import { getRandomPrompts } from "@/app/utils/prompt"
+import NotAuthorizedPage from "@/app/not-authorized/page"
 import { History } from "@/app/components/journal/history"
 import { TimeWidget } from "@/app/components/journal/timeWidget"
 import { StatusWidget } from "@/app/components/journal/statusWidget"
@@ -29,6 +31,7 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
   const [existingJournal, setExistingJournal] = useState<any>(null)
   const [isCheckingExisting, setIsCheckingExisting] = useState(false)
 
+  const { data: session, status } = useSession()
   const hasWrittenToday = Boolean(existingJournal)
   const refreshPrompts = () => setPrompts(getRandomPrompts())
 
@@ -175,6 +178,10 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
       checkExistingJournal()
     }
   }, [selectedDate])
+
+  if (status === "unauthenticated" || !session) {
+    return <NotAuthorizedPage />
+  }
 
   return (
     <Box mt="60px" bg="gray.50">

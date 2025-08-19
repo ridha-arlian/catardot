@@ -1,13 +1,13 @@
 "use client"
 
-import { auth, signIn } from "@/auth"
+import { useSession, signIn } from "next-auth/react"
 import { ColorModeButton } from "@/components/ui/color-mode"
 import { BookOpen, CalendarDays, Sparkles, Heart, Leaf } from "lucide-react"
 import { SheetsIcons, NotionIcons, GoogleIcons } from "@/components/icons/iconsDarkMode"
 import { Box, Container, VStack, Text, Button, Card, Heading, Icon, SimpleGrid, GridItem } from "@chakra-ui/react"
 
-export const LandingPage = async () => {
-  const session = await auth()
+export const LandingPage = () => {
+  const { data: session } = useSession()
   console.log(session)
   return (
     <>
@@ -69,7 +69,7 @@ export const LandingPage = async () => {
                   <Icon as={CalendarDays} boxSize={10} color="brand.500"/>
                 </Box>
                 <Heading as="h4" textStyle="headLPGrid" mb={4} color="card.foreground">
-                  DAILY PRACTICE
+                  Daily Practice
                 </Heading>
                 <Text color="muted.foreground" textStyle="textLPGrid">
                   One sentence each day to nurture a steady habit of reflection.
@@ -117,7 +117,7 @@ export const LandingPage = async () => {
               </Card.Header>
               <Card.Body>
                 <VStack gap={4}>
-                  <Button w="full" bg="white" color="gray.800" borderWidth={1} borderColor="gray.300" _hover={{ bg: "gray.50" }} textStyle="googleLPLogin" onClick={() => signIn("google", { callbackUrl: "/story" })}>
+                  <Button w="full" bg="white" color="gray.800" borderWidth={1} borderColor="gray.300" _hover={{ bg: "gray.50" }} textStyle="googleLPLogin" onClick={() => signIn("google", { redirectTo: "/story" })}>
                     <GoogleIcons boxSize={8}/>
                     Continue with Google
                   </Button>

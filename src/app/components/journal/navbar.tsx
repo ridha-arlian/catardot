@@ -1,6 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { useSession, signOut } from "next-auth/react"
 import React, { useState, useEffect } from "react"
 import { ColorModeButton } from "@/components/ui/color-mode"
 import { Flex, HStack, Button, Avatar, Menu, Portal, VStack, Heading, Text } from "@chakra-ui/react"
@@ -8,6 +9,7 @@ import { Flex, HStack, Button, Avatar, Menu, Portal, VStack, Heading, Text } fro
 const MotionFlex = motion.create(Flex)
 
 export const Navbar = () => {
+  const { data: session } = useSession()
   const [scrolled, setScrolled] = useState(false)
   
   useEffect(() => {
@@ -39,8 +41,8 @@ export const Navbar = () => {
           <Menu.Root positioning={{ placement: "right-end" }}>
             <Menu.Trigger rounded="full" focusRing="outside">
               <Avatar.Root size="lg">
-                <Avatar.Fallback name="Segun Adebayo" />
-                <Avatar.Image src="https://bit.ly/sage-adebayo" />
+                <Avatar.Fallback name={ session?.user?.name ?? "Segun Adebayo" } />
+                <Avatar.Image src={ session?.user?.image ?? "https://bit.ly/sage-adebayo" } />
               </Avatar.Root>
             </Menu.Trigger>
             <Portal>
@@ -52,7 +54,7 @@ export const Navbar = () => {
                   <Menu.Item value="settings">
                     Settings
                   </Menu.Item>
-                  <Menu.Item value="logout">
+                  <Menu.Item value="logout" onClick={() => signOut({ callbackUrl: "/" })} >
                     Logout
                   </Menu.Item>
                 </Menu.Content>
