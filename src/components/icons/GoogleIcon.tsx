@@ -1,7 +1,7 @@
-import { Icon, IconProps } from "@chakra-ui/react";
+import { Icon, IconProps } from "@chakra-ui/react"
 
 interface GoogleIconProps extends IconProps {
-  isHovered?: boolean;
+  isHovered?: boolean
 }
 
 const GoogleIcon = ({ isHovered = false, ...props }: GoogleIconProps) => {

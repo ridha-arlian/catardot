@@ -6,7 +6,7 @@ import { useColorModeValue } from "@/components/ui/color-mode"
 import { toaster } from "@/components/ui/toaster"
 import { useEffect, useState } from 'react'
 import { FiCalendar, FiSave, FiFileText, FiEdit } from 'react-icons/fi'
-import { getRandomPrompts } from '../../utils/prompt'
+import { getRandomPrompts } from '../../utils/data/prompt'
 
 interface StoryWidgetProps {
   selectedDate: string
@@ -32,21 +32,21 @@ export function StoryWidget({ selectedDate, onDateChange, onJournalSaved }: Stor
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           content: content,
-          storyDate: date,
-          userId: 'user123'
+          storyDate: date
         })
-      })
-      
-      const data = await response.json()
+      });
+
+      const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.error || 'Gagal menyimpan catatan')
+        throw new Error(data.error || 'Gagal menyimpan catatan');
       }
-      return data
+      return data;
     } catch (error) {
-      console.error('Error saving story:', error)
-      throw error
+      console.error('Error saving story:', error);
+      throw error;
     }
-  }
+  };
+
 
   const showEmptyContentWarning = () => {
     toaster.create({
@@ -122,22 +122,23 @@ export function StoryWidget({ selectedDate, onDateChange, onJournalSaved }: Stor
     }
   }
 
-  const checkExistingJournal = async () => {
-    if (lastCheckedDate === selectedDate) return
 
-    setIsCheckingExisting(true)
+  const checkExistingJournal = async () => {
+    if (lastCheckedDate === selectedDate) return;
+
+    setIsCheckingExisting(true);
     try {
-      const response = await fetch(`/api/story?userId=user123&date=${selectedDate}`)
-      const data = await response.json()
-      setExistingJournal(data.success && data.data ? data.data : null)
-      setLastCheckedDate(selectedDate)
+      const response = await fetch(`/api/story?storyDate=${selectedDate}`);
+      const data = await response.json();
+      setExistingJournal(data.exists ? { storyDate: selectedDate } : null);
+      setLastCheckedDate(selectedDate);
     } catch (error) {
-      console.error('Error checking existing journal:', error)
-      setExistingJournal(null)
+      console.error('Error checking existing journal:', error);
+      setExistingJournal(null);
     } finally {
-      setIsCheckingExisting(false)
+      setIsCheckingExisting(false);
     }
-  }
+  };
 
   const handleContinueDraft = () => {
     toaster.create({
@@ -163,7 +164,7 @@ export function StoryWidget({ selectedDate, onDateChange, onJournalSaved }: Stor
     <Box flex="2">
       <Card.Root bg={cardBg} shadow="lg" position="relative">
         <Card.Body>
-          <VStack gap="6" align="stretch">
+          <VStack gap="3" align="stretch">
             <HStack gap="4">
               <Box flex="1">
                 <Text mb={2} fontWeight="medium" color="gray.700">
@@ -186,7 +187,7 @@ export function StoryWidget({ selectedDate, onDateChange, onJournalSaved }: Stor
                 <Box as={FiFileText} display="inline" mr={2} />
                 Apa hal paling bermakna hari ini?
               </Text>
-              <Textarea placeholder={prompts.promptContent} value={storyContent} onChange={(e) => setStoryContent(e.target.value)} minH="150px" disabled={existingJournal} autoresize/>
+              <Textarea placeholder={prompts.promptContent} value={storyContent} onChange={(e) => setStoryContent(e.target.value)} minH="100px" disabled={existingJournal} autoresize/>
               {existingJournal && (
                 <Box position="absolute" top="0" left="0" right="0" bottom="0" bg={cardBg} backdropFilter="blur(4px)" borderRadius="md" display="flex" alignItems="center" justifyContent="center" zIndex={10} border="2px solid" borderColor="orange.200">
                   <VStack gap={3} textAlign="center" p={6}>

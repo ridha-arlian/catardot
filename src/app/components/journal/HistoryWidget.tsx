@@ -1,18 +1,15 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
+
+import { FiEdit } from 'react-icons/fi'
 import { useState, useEffect } from 'react'
-import { Box, Text, VStack, HStack, Badge, Button, Card, Heading } from '@chakra-ui/react'
-import { useColorModeValue } from "@/components/ui/color-mode"
-import { FiEye, FiEdit } from 'react-icons/fi'
-import HistoryWidgetModal from '../../modals/HistoryWidgetModal'
+import { useColorModeValue } from '@/components/ui/color-mode'
+import { HistoryWidgetModal } from '../../modals/historyModal'
+import { Box, Text, VStack, HStack, Badge, Card, Heading } from '@chakra-ui/react'
 
 interface JournalEntry {
-  id: string
-  content: string
   storyDate: string
-  createdAt: string
-  userId: string
+  content: string
 }
 
 interface JournalHistoryProps {
@@ -24,7 +21,7 @@ export const HistoryWidget = ({ selectedDate, journalData }: JournalHistoryProps
   const [currentEntry, setCurrentEntry] = useState<JournalEntry | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [lastFetchedDate, setLastFetchedDate] = useState<string>('')
-  
+
   const cardBg = useColorModeValue('white', 'gray.800')
   const borderColor = useColorModeValue('gray.200', 'gray.600')
   const contentColor = useColorModeValue('gray.600', 'gray.400')
@@ -32,7 +29,6 @@ export const HistoryWidget = ({ selectedDate, journalData }: JournalHistoryProps
   const emptyBg = useColorModeValue('gray.50', 'gray.700')
 
   const getDateString = (date: Date) => date.toISOString().split('T')[0]
-
   const isSameDate = (date1: Date, date2: Date) => getDateString(date1) === getDateString(date2)
 
   const formatSelectedDate = () => {
@@ -46,21 +42,17 @@ export const HistoryWidget = ({ selectedDate, journalData }: JournalHistoryProps
 
   const fetchJournalByDate = async (date: Date) => {
     const dateString = getDateString(date)
-    
     if (lastFetchedDate === dateString && !journalData) return
+
     setIsLoading(true)
     try {
-      const response = await fetch(`/api/story?userId=user123&date=${dateString}`)
+      const response = await fetch(`/api/story?storyDate=${encodeURIComponent(dateString)}`)
       const data = await response.json()
-      
+
       if (getDateString(selectedDate) !== dateString) return
 
-      if (data.success && data.data) {
-        const receivedDate = new Date(data.data.storyDate)
-        setCurrentEntry(isSameDate(receivedDate, date) ? data.data : null)
-        if (!isSameDate(receivedDate, date)) {
-          console.warn('Data tidak sesuai dengan tanggal yang diminta')
-        }
+      if (data && data.exists) {
+        setCurrentEntry({ storyDate: dateString, content: data.story })
       } else {
         setCurrentEntry(null)
       }
@@ -78,35 +70,34 @@ export const HistoryWidget = ({ selectedDate, journalData }: JournalHistoryProps
       setCurrentEntry(null)
       setLastFetchedDate(currentDateString)
     }
-    if (journalData) {
-      const journalDate = new Date(journalData.storyDate)
-      
-      if (isSameDate(journalDate, selectedDate)) {
-        setCurrentEntry(journalData)
-      } else {
-        fetchJournalByDate(selectedDate)
-      }
+    if (journalData && isSameDate(new Date(journalData.storyDate), selectedDate)) {
+      setCurrentEntry(journalData)
     } else {
       fetchJournalByDate(selectedDate)
     }
   }, [selectedDate, journalData])
 
-  const handleSaveChanges = (updatedEntry: JournalEntry) => {
-    setCurrentEntry(updatedEntry)
+  const handleSaveChanges = (updatedEntry: Partial<JournalEntry>) => {
+    setCurrentEntry({
+      storyDate: updatedEntry.storyDate || currentEntry?.storyDate || "",
+      content: updatedEntry.content || currentEntry?.content || ""
+    })
   }
 
   if (isLoading) {
     return (
-      <Card.Root bg={cardBg} shadow="md">
-        <Card.Body>
-          <Heading size="md" mb={4} color="purple.500">
-            Riwayat Catatan
-          </Heading>
-          <Box minH="210px" display="flex" alignItems="center" justifyContent="center">
-            <Text color={contentColor}>Memuat catatan...</Text>
-          </Box>
-        </Card.Body>
-      </Card.Root>
+      <>
+        <Card.Root bg={cardBg} shadow="md">
+          <Card.Body>
+            <Heading size="md" mb={4} color="purple.500">
+              Riwayat Catatan
+            </Heading>
+            <Box minH="210px" display="flex" alignItems="center" justifyContent="center">
+              <Text color={contentColor}>Memuat catatan...</Text>
+            </Box>
+          </Card.Body>
+        </Card.Root>
+      </>
     )
   }
 
@@ -133,7 +124,7 @@ export const HistoryWidget = ({ selectedDate, journalData }: JournalHistoryProps
                   </Box>
                   <Box minH="10" display="flex" alignItems="end">
                     <HStack justify="center" width="100%">
-                      <HistoryWidgetModal entry={currentEntry} onSave={handleSaveChanges}/>
+                      <HistoryWidgetModal entry={{ storyDate: currentEntry.storyDate, content: currentEntry.content }} onSave={handleSaveChanges}/>
                     </HStack>
                   </Box>
                 </VStack>

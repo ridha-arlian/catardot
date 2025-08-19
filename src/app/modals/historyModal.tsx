@@ -1,34 +1,32 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+// /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
+
 import { useState } from 'react'
-import { Box, Text, VStack, HStack, Button, Textarea, Card, Dialog, Portal, CloseButton } from '@chakra-ui/react'
 import { useColorModeValue } from "@/components/ui/color-mode"
 import { FiCalendar, FiEdit3, FiSave, FiX, FiEye } from 'react-icons/fi'
+import { Box, Text, VStack, HStack, Button, Textarea, Card, Dialog, Portal, CloseButton } from '@chakra-ui/react'
 
 interface JournalEntry {
-  id: string
-  content: string
   storyDate: string
-  createdAt: string
-  userId: string
+  content: string
 }
 
-interface HistoryWidgetModalProps {
-  entry: JournalEntry
-  onSave: (updatedEntry: JournalEntry) => void
+interface HistoryModalProps {
+  entry: Partial<JournalEntry>
+  onSave: (updatedEntry: Partial<JournalEntry>) => void
 }
 
-export function HistoryWidgetModal({ entry, onSave }: HistoryWidgetModalProps) {
-  const [isEditing, setIsEditing] = useState(false)
-  const [editedContent, setEditedContent] = useState(entry.content)
+export const HistoryModal = ({ entry, onSave }: HistoryModalProps) => {
   const [isSaving, setIsSaving] = useState(false)
-  const [abortController, setAbortController] = useState<AbortController | null>(null)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editedContent, setEditedContent] = useState(entry.content || "")
 
   const cardBg = useColorModeValue('white', 'gray.800')
   const borderColor = useColorModeValue('gray.200', 'gray.600')
   const contentColor = useColorModeValue('gray.600', 'gray.400')
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return '-'
     return new Date(dateString).toLocaleDateString('id-ID', {
       weekday: 'long',
       day: 'numeric',
@@ -38,38 +36,25 @@ export function HistoryWidgetModal({ entry, onSave }: HistoryWidgetModalProps) {
   }
 
   const resetState = () => {
-    setEditedContent(entry.content)
+    setEditedContent(entry.content || '')
     setIsEditing(false)
     setIsSaving(false)
   }
 
-  const cancelRequest = () => {
-    if (abortController) {
-      abortController.abort()
-      setAbortController(null)
-    }
-  }
-
   const handleSave = async () => {
     setIsSaving(true)
-    const controller = new AbortController()
-    setAbortController(controller)
     try {
       const response = await fetch('/api/story', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          id: entry.id,
-          content: editedContent,
-          userId: entry.userId
-        }),
-        signal: controller.signal
+          storyDate: entry.storyDate,
+          content: editedContent
+        })
       })
 
       const data = await response.json()
-
+      
       if (data.success) {
         onSave({ ...entry, content: editedContent })
         setIsEditing(false)
@@ -77,50 +62,40 @@ export function HistoryWidgetModal({ entry, onSave }: HistoryWidgetModalProps) {
         console.error('Error updating journal:', data.error)
         resetState()
       }
-    } catch (error: any) {
-      if (error.name !== 'AbortError') {
-        resetState()
-      }
+    } catch (error) {
+      console.error('Fetch error:', error)
+      resetState()
     } finally {
       setIsSaving(false)
-      setAbortController(null)
     }
   }
 
-  const handleCancel = () => {
-    cancelRequest()
-    resetState()
-  }
-
-  const handleClose = () => {
-    cancelRequest()
-    handleCancel()
-  }
-  
   return (
     <>
       <Dialog.Root size="lg">
         <Dialog.Trigger asChild>
-          <Button size="sm" variant="outline" colorScheme="blue" >
+          <Button size="sm" variant="outline" colorScheme="blue">
             <FiEye />
-            Lihat Selengkapnya
-          </Button>
+              Lihat Selengkapnya
+            </Button>
         </Dialog.Trigger>
-        <Portal>               
-          <Dialog.Backdrop tabIndex={-1} aria-hidden="true" style={{ pointerEvents: 'auto' }}/>
+        <Portal>
+          <Dialog.Backdrop tabIndex={-1} aria-hidden="true" />
           <Dialog.Positioner>
             <Dialog.Content>
               <Dialog.Header>
                 <Dialog.Title>
                   {isEditing ? 'Edit Catatan' : 'Detail Catatan'}
                 </Dialog.Title>
-                <Dialog.CloseTrigger />
+                <Dialog.CloseTrigger asChild>
+                  <CloseButton size="lg" />
+                </Dialog.CloseTrigger>
               </Dialog.Header>
               <Dialog.Body>
                 <VStack align="stretch" gap={4}>
                   <Card.Root bg={useColorModeValue('blue.50', 'blue.900')} variant="outline">
                     <Card.Body py={3}>
-                      <HStack justify="flex-start" align="center" gap={2}>
+                      <HStack gap={2}>
                         <Box as={FiCalendar} color="blue.500" />
                         <Text fontSize="sm" fontWeight="medium" color="blue.700">
                           {formatDate(entry.storyDate)}
@@ -131,7 +106,7 @@ export function HistoryWidgetModal({ entry, onSave }: HistoryWidgetModalProps) {
 
                   <Box>
                     {isEditing ? (
-                      <Textarea autoresize value={editedContent} onChange={(e) => setEditedContent(e.target.value)} placeholder="Tulis Catatan di sini..."/>
+                      <Textarea value={editedContent} onChange={(e) => setEditedContent(e.target.value)} placeholder="Tulis Catatan di sini..."/>
                     ) : (
                       <Box p={4} border="1px solid" borderColor={borderColor} borderRadius="md" bg={cardBg} maxH="300px" overflowY="auto">
                         <Text fontSize="sm" lineHeight="1.6" whiteSpace="pre-wrap">
@@ -142,11 +117,9 @@ export function HistoryWidgetModal({ entry, onSave }: HistoryWidgetModalProps) {
                   </Box>
 
                   {isEditing && (
-                    <Box>
-                      <Text fontSize="xs" color={contentColor}>
-                        Jumlah kata: {editedContent.split(' ').filter(word => word.length > 0).length}
-                      </Text>
-                    </Box>
+                    <Text fontSize="xs" color={contentColor}>
+                      Jumlah kata: {editedContent.split(/\s+/).filter(Boolean).length}
+                    </Text>
                   )}
                 </VStack>
               </Dialog.Body>
@@ -154,11 +127,11 @@ export function HistoryWidgetModal({ entry, onSave }: HistoryWidgetModalProps) {
                 <HStack gap={3}>
                   {isEditing ? (
                     <>
-                      <Button variant="outline"colorScheme="gray"onClick={handleCancel}>
+                      <Button variant="outline" colorScheme="gray" onClick={resetState}>
                         <FiX />
                         Batal
                       </Button>
-                      <Button colorScheme="blue" onClick={handleSave} disabled={!editedContent.trim() || isSaving} loading={isSaving}>
+                      <Button colorScheme="blue" onClick={handleSave} disabled={!editedContent.trim()} loading={isSaving}>
                         <FiSave />
                         {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
                       </Button>
@@ -166,7 +139,7 @@ export function HistoryWidgetModal({ entry, onSave }: HistoryWidgetModalProps) {
                   ) : (
                     <>
                       <Dialog.ActionTrigger asChild>
-                        <Button variant="outline" colorScheme="gray" onClick={handleClose}>
+                        <Button variant="outline" colorScheme="gray">
                           Tutup
                         </Button>
                       </Dialog.ActionTrigger>
@@ -178,9 +151,6 @@ export function HistoryWidgetModal({ entry, onSave }: HistoryWidgetModalProps) {
                   )}
                 </HStack>
               </Dialog.Footer>
-              <Dialog.CloseTrigger asChild>
-                <CloseButton size="lg" />
-              </Dialog.CloseTrigger>
             </Dialog.Content>
           </Dialog.Positioner>
         </Portal>
@@ -188,5 +158,3 @@ export function HistoryWidgetModal({ entry, onSave }: HistoryWidgetModalProps) {
     </>
   )
 }
-
-export default HistoryWidgetModal

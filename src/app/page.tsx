@@ -1,10 +1,10 @@
 import { Box } from '@chakra-ui/react'
-import { LandingPage } from './components/landing/LandingPage'
+import { LandingPage } from '@/app/components/landing/landingPage'
 
 export default function Home() {
   return (
     <>
-      <Box bg="blue.normal">
+      <Box bg={{ base: 'whiteAlpha.400', _dark: 'blackAlpha.400' }}>
         <LandingPage />
       </Box>
     </>

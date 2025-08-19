@@ -1,121 +1,136 @@
 import { defineTextStyles } from '@chakra-ui/react'
 
 export const textStyles = defineTextStyles({
-  gugi: {
-    description: 'The body text style - used in paragraphs',
+  headingLP:{
+    description: 'For Heading in Landing Page',
     value: {
-      fontFamily: 'var(--font-gugi)',
-      fontWeight: '400',
-      fontSize: '25px',
+      fontFamily: 'var(--font-playfair-display)',
+      fontWeight: '600',
+      fontSize: { base: '50px', md: '50px' },
       lineHeight: '24px',
       letterSpacing: '0px',
       textDecoration: 'none',
       textTransform: 'none',
     },
   },
-  open: {
-    description: 'For Typography',
+  subHeadingLP:{
+    description: 'For Sub Heading in Landing Page',
     value: {
-      fontFamily: 'var(--font-open-sans)',
-      fontWeight: '500',
-      fontSize: '20px',
-      lineHeight: '24px',
-      letterSpacing: '0px',
-      textDecoration: 'none',
-      textTransform: 'none',
-    }
-  },
-  roboto: {
-    description: 'For Landing Page',
-    value: {
-      fontFamily: 'var(--font-roboto-mono)',
-      fontWeight: '500',
-      fontSize: '30px',
-      lineHeight: '120px',
-      letterSpacing: '0px',
-      textDecoration: 'none',
-      textTransform: 'none',
-    }
-  },
-  rubik: {
-    description: 'For numbering',
-    value:{
-      fontFamily: 'var(--font-rubik)',
-      fontWeight: '500',
-      fontSize: '60px',
-      lineHeight: '1',
-      textDecoration: 'none',
-      textTransform: 'none',
-    }
-  },
-  rubikSecond: {
-    description: 'For text',
-    value:{
-      fontFamily: 'var(--font-rubik)',
+      fontFamily: 'var(--font-quicksand)',
       fontWeight: '400',
       fontSize: '35px',
-      letterSpacing: '0.1em',
+      lineHeight: '40px',
+      letterSpacing: '0px',
       textDecoration: 'none',
       textTransform: 'none',
-    }
+    },
   },
-  rubikThird: {
-    description: 'For calendar header',
-    value:{
-      fontFamily: 'var(--font-rubik)',
-      fontWeight: '500',
+  textLP:{
+    description: 'For Sub Heading in Landing Page',
+    value: {
+      fontFamily: 'var(--font-quicksand)',
+      fontWeight: '400',
+      fontSize: '18px',
+      lineHeight: '40px',
+      letterSpacing: '0px',
+      textDecoration: 'none',
+      textTransform: 'none',
+    },
+  },
+  headLPGrid:{
+    description: 'For Heading Feature Grid in Landing Page',
+    value: {
+      fontFamily: 'var(--font-quicksand)',
+      fontWeight: '800',
       fontSize: '20px',
-      // lineHeight: '1.2',
-      letterSpacing: '0.1em',
+      lineHeight: '20px',
+      letterSpacing: '0px',
       textDecoration: 'none',
       textTransform: 'none',
-    }
+    },
   },
-  rubikFour: {
-    description: 'For calendar number',
-    value:{
-      fontFamily: 'var(--font-rubik)',
-      fontWeight: '400',
-      fontSize: '15px',
-      // lineHeight: '1',
-      letterSpacing: '0.1em',
+  textLPGrid:{
+    description: 'For Heading Feature Grid in Landing Page',
+    value: {
+      fontFamily: 'var(--font-quicksand)',
+      fontWeight: '500',
+      fontSize: '16px',
+      lineHeight: '20px',
+      letterSpacing: '0px',
       textDecoration: 'none',
       textTransform: 'none',
-    }
+    },
   },
-  rubikFive: {
-    description: 'For calendar day',
-    value:{
-      fontFamily: 'var(--font-rubik)',
-      fontWeight: '400',
-      fontSize: '13px',
-      // lineHeight: '1',
+  headingLPLogin:{
+    description: 'For Heading Feature Grid in Landing Page',
+    value: {
+      fontFamily: 'var(--font-quicksand)',
+      fontWeight: '800',
+      fontSize: '20px',
+      lineHeight: '20px',
+      letterSpacing: '0px',
       textDecoration: 'none',
       textTransform: 'none',
-    }
+    },
   },
-  rubikSix: {
-    description: 'For calendar date',
-    value:{
-      fontFamily: 'var(--font-rubik)',
-      fontWeight: '300',
+  textLPLogin:{
+    description: 'For Heading Feature Grid in Landing Page',
+    value: {
+      fontFamily: 'var(--font-quicksand)',
+      fontWeight: '500',
+      fontSize: '14px',
+      lineHeight: '20px',
+      letterSpacing: '0px',
+      textDecoration: 'none',
+      textTransform: 'none',
+    },
+  },
+  googleLPLogin:{
+    description: 'For Heading Feature Grid in Landing Page',
+    value: {
+      fontFamily: 'var(--font-quicksand)',
+      fontWeight: '500',
+      fontSize: '14px',
+      lineHeight: '20px',
+      letterSpacing: '0px',
+      textDecoration: 'none',
+      textTransform: 'none',
+    },
+  },
+  miniHeadingLPFeat:{
+    description: 'For Heading Feature Grid in Landing Page',
+    value: {
+      fontFamily: 'var(--font-quicksand)',
+      fontWeight: '800',
+      fontSize: '14px',
+      lineHeight: '20px',
+      letterSpacing: '0px',
+      textDecoration: 'none',
+      textTransform: 'Uppercase',
+    },
+  },
+  headingLPFeat:{
+    description: 'For Heading Feature Grid in Landing Page',
+    value: {
+      fontFamily: 'var(--font-quicksand)',
+      fontWeight: '800',
+      fontSize: '16px',
+      lineHeight: '20px',
+      letterSpacing: '0px',
+      textDecoration: 'none',
+      textTransform: '',
+    },
+  },
+  textLPFeat:{
+    description: 'For Heading Feature Grid in Landing Page',
+    value: {
+      fontFamily: 'var(--font-quicksand)',
+      fontWeight: '500',
       fontSize: '12px',
-      // lineHeight: '1',
-      letterSpacing: '0.1em',
+      lineHeight: '20px',
+      letterSpacing: '0px',
       textDecoration: 'none',
-      textTransform: 'none',
-    }
+      textTransform: '',
+    },
   },
-  rubikSeven: {
-    description: 'For calendar footer',
-    value:{
-      fontFamily: 'var(--font-rubik)',
-      fontWeight: '300',
-      fontSize: '13px',
-      // lineHeight: '1',
-      letterSpacing: '0.1em',
-      textDecoration: 'none',
-      textTransform: 'none',
-    }
-  }
 })

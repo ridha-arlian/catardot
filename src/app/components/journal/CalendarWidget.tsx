@@ -122,9 +122,15 @@ export const CalendarWidget = ({ value, onChange, locale = 'id-ID', onDateSelect
     navigateToMonth(nextYear, nextMonth)
   }
 
-  const goToToday = () => {
+  const goToToday = async () => {
     const today = new Date()
-    navigateToMonth(today.getFullYear(), today.getMonth())
+    await navigateToMonth(today.getFullYear(), today.getMonth())
+    const newDate = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+    setCurrentDate(newDate)
+    onChange?.(newDate)
+    const dayKey = today.getDate().toString()
+    const journalEntry = journalData[dayKey] || null
+    onDateSelect?.(newDate, journalEntry)
   }
 
   const refreshCurrentMonth = async () => {
@@ -222,7 +228,7 @@ export const CalendarWidget = ({ value, onChange, locale = 'id-ID', onDateSelect
             </Button>
           </HStack>
           <Box textAlign="center" mt={2}>
-            <Button size="sm" variant="outline" onClick={goToToday} colorScheme="blue" disabled={isTransitioning}>
+            <Button size="sm" variant="outline" onClick={async () => await goToToday()} colorScheme="blue" disabled={isTransitioning}>
               Hari Ini
             </Button>
           </Box>

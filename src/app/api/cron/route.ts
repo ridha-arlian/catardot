@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server"
 
-// app/api/keep-alive/route.ts
 export async function GET() {
   try {
-    // Simple HTTP ping ke Supabase untuk keep connection alive
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     
     const response = await fetch(`${supabaseUrl}/rest/v1/`, {
@@ -15,17 +13,17 @@ export async function GET() {
       }
     })
     
-    console.log('✅ Supabase ping status:', response.status)
+    console.log('Supabase ping status:', response.status)
     
     return NextResponse.json({ 
-      status: 'alive', 
+      status: 'alive',
       timestamp: new Date().toISOString(),
       supabaseStatus: response.status,
       method: 'http-ping'
     })
     
   } catch (error) {
-    console.error('❌ Ping error:', error)
+    console.error('Ping error:', error)
     return NextResponse.json({ 
       error: 'Ping failed',
       details: error instanceof Error ? error.message : 'Unknown error'
