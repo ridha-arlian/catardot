@@ -1,16 +1,16 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-'use client'
+"use client"
 
-import { BookOpen, Sparkles } from 'lucide-react'
-import { toaster } from '@/components/ui/toaster'
-import { getRandomPrompts } from '@/app/utils/data/prompt'
-import { History } from '@/app/components/journal/history'
-import { useEffect, useState } from 'react'
-import { TimeWidget } from '@/app/components/journal/TimeWidget'
-import { StatusWidget } from '@/app/components/journal/StatusWidget'
-import { Box, VStack, HStack, Heading, Text, Button, Textarea, Center, Skeleton } from '@chakra-ui/react'
+import { useEffect, useState } from "react"
+import { BookOpen, Sparkles } from "lucide-react"
+import { toaster } from "@/components/ui/toaster"
+import { getRandomPrompts } from "@/app/utils/prompt"
+import { History } from "@/app/components/journal/history"
+import { TimeWidget } from "@/app/components/journal/timeWidget"
+import { StatusWidget } from "@/app/components/journal/statusWidget"
+import { Box, VStack, HStack, Heading, Text, Button, Textarea, Center, Skeleton } from "@chakra-ui/react"
 
 interface StoryProps {
   onDateChange: (date: string) => void
@@ -19,12 +19,12 @@ interface StoryProps {
 
 export const Story = ({ onJournalSaved }: StoryProps) => {
   const [isLoading, setIsLoading] = useState(true)
-  const [todayEntry, setTodayEntry] = useState('')
-  const [selectedDate, setSelectedDate] = useState('')
-  const [storyContent, setStoryContent] = useState('')
+  const [todayEntry, setTodayEntry] = useState("")
+  const [selectedDate, setSelectedDate] = useState("")
+  const [storyContent, setStoryContent] = useState("")
   const [refreshTrigger, setRefreshTrigger] = useState(0)
-  const [lastCheckedDate, setLastCheckedDate] = useState('')
-  const [prompts, setPrompts] = useState({ promptContent: '' })
+  const [lastCheckedDate, setLastCheckedDate] = useState("")
+  const [prompts, setPrompts] = useState({ promptContent: "" })
   const [showPastEntries, setShowPastEntries] = useState(false)
   const [existingJournal, setExistingJournal] = useState<any>(null)
   const [isCheckingExisting, setIsCheckingExisting] = useState(false)
@@ -34,25 +34,25 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
 
   const saveStoryToAPI = async (content: string, date: string) => {
     try {
-      const response = await fetch('/api/story', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/story", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content, storyDate: date }),
       })
       const data = await response.json()
-      if (!response.ok) throw new Error(data.error || 'Gagal menyimpan catatan')
+      if (!response.ok) throw new Error(data.error || "Gagal menyimpan catatan")
       return data
     } catch (error) {
-      console.error('Error saving story:', error)
+      console.error("Error saving story:", error)
       throw error
     }
   }
 
   const showEmptyContentWarning = () => {
     toaster.create({
-      title: 'Catatan Kosong',
-      description: 'Mohon isi catatan terlebih dahulu',
-      type: 'warning',
+      title: "Catatan Kosong",
+      description: "Mohon isi catatan terlebih dahulu",
+      type: "warning",
       duration: 5000,
       closable: true,
     })
@@ -62,19 +62,19 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
     return toaster.promise(savePromise, {
       success: {
         title: successTitle,
-        description: successTitle.includes('Draft') ? 'Catatan Anda telah tersimpan sementara' : 'Cerita Anda telah tersimpan dengan baik',
+        description: successTitle.includes("Draft") ? "Catatan Anda telah tersimpan sementara" : "Cerita Anda telah tersimpan dengan baik",
         duration: 5000,
         closable: true,
       },
       error: {
-        title: successTitle.includes('Draft') ? 'Gagal Menyimpan Catatan Sementara' : 'Gagal Menyimpan Catatan',
-        description: successTitle.includes('Draft') ? 'Terjadi kesalahan saat menyimpan catatan sementara' : 'Terjadi kesalahan saat menyimpan. Silakan coba lagi',
+        title: successTitle.includes("Draft") ? "Gagal Menyimpan Catatan Sementara" : "Gagal Menyimpan Catatan",
+        description: successTitle.includes("Draft") ? "Terjadi kesalahan saat menyimpan catatan sementara" : "Terjadi kesalahan saat menyimpan. Silakan coba lagi",
         duration: 5000,
         closable: true,
       },
       loading: {
         title: loadingTitle,
-        description: loadingTitle.includes('Draft') ? 'Sedang menyimpan catatan sementara Anda' : 'Sedang menyimpan catatan Anda'
+        description: loadingTitle.includes("Draft") ? "Sedang menyimpan catatan sementara Anda" : "Sedang menyimpan catatan Anda"
       },
     })
   }
@@ -86,7 +86,7 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
     }
 
     const savePromise = saveStoryToAPI(storyContent, selectedDate)
-    createToasterPromise(savePromise, 'Catatan Berhasil Disimpan!', 'Menyimpan...')
+    createToasterPromise(savePromise, "Catatan Berhasil Disimpan!", "Menyimpan...")
 
     try {
       const result = await savePromise
@@ -98,28 +98,28 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
       onJournalSaved?.(result.data)
       setRefreshTrigger((prev) => prev + 1)
     } catch (error) {
-      console.error('Error saving story:', error)
+      console.error("Error saving story:", error)
     }
   }
 
   const handleSaveDraft = async () => {
     if (!storyContent.trim()) {
       toaster.create({
-        title: 'Content Kosong',
-        description: 'Tidak ada content untuk disimpan sebagai catatan sementara',
-        type: 'warning',
+        title: "Content Kosong",
+        description: "Tidak ada content untuk disimpan sebagai catatan sementara",
+        type: "warning",
       })
       return
     }
 
     const saveDraftPromise = saveStoryToAPI(storyContent, selectedDate)
-    createToasterPromise(saveDraftPromise, 'Catatan Disimpan Sementara!', 'Menyimpan Catatan...')
+    createToasterPromise(saveDraftPromise, "Catatan Disimpan Sementara!", "Menyimpan Catatan...")
 
     try {
       const result = await saveDraftPromise
-      console.log('Draft saved:', result.data)
+      console.log("Draft saved:", result.data)
     } catch (error) {
-      console.error('Error saving draft:', error)
+      console.error("Error saving draft:", error)
     }
   }
 
@@ -142,10 +142,10 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
       }
       setLastCheckedDate(selectedDate)
     } catch (error) {
-      console.error('Error checking existing journal:', error)
+      console.error("Error checking existing journal:", error)
       setExistingJournal(null)
-      setTodayEntry('')
-      setStoryContent('')
+      setTodayEntry("")
+      setStoryContent("")
     } finally {
       setIsCheckingExisting(false)
       setIsLoading(false)
@@ -162,8 +162,8 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
 
   const editTodayEntry = () => {
     setExistingJournal(null)
-    setTodayEntry('')
-    setStoryContent(todayEntry || '')
+    setTodayEntry("")
+    setStoryContent(todayEntry || "")
   }
 
   useEffect(() => {
@@ -227,7 +227,7 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
                       {storyContent.length}/280 characters
                     </Text>
                     <Button colorScheme="blue" width="170px" onClick={handleSaveStory} disabled={!storyContent.trim() || existingJournal || isCheckingExisting}>
-                      {existingJournal ? 'Catatan Sudah Ada' : 'Save Today\'s Sentence'}
+                      {existingJournal ? "Catatan Sudah Ada" : "Save Today\'s Sentence"}
                     </Button>
                   </HStack>
                   <Button variant="outline" width="170px" colorScheme="gray" onClick={handleSaveDraft} disabled={!storyContent.trim() || existingJournal || isCheckingExisting}>
@@ -250,8 +250,7 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
                 </VStack>
 
                 <Box bg="gray.100" rounded="md" p={6} borderWidth={1} borderColor="gray.200" fontStyle="italic">
-                  {/* &quot;{todayEntry}&quot; */}
-                  {todayEntry === '' ? <Skeleton height="40px" /> : `"${todayEntry}"`}
+                  {todayEntry === "" ? <Skeleton height="40px" /> : `"${todayEntry}"`}
                 </Box>
 
                 <Center>

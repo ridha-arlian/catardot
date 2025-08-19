@@ -1,11 +1,10 @@
-'use client'
+"use client"
 
-import { motion } from 'framer-motion'
-import React, { useState, useEffect } from 'react'
-import { ColorModeButton } from '@/components/ui/color-mode'
-import { Flex, HStack, Button, Avatar, Menu, Portal, VStack, Heading, Text } from '@chakra-ui/react'
+import { motion } from "framer-motion"
+import React, { useState, useEffect } from "react"
+import { ColorModeButton } from "@/components/ui/color-mode"
+import { Flex, HStack, Button, Avatar, Menu, Portal, VStack, Heading, Text } from "@chakra-ui/react"
 
-// const MotionBox = motion.create(Box)
 const MotionFlex = motion.create(Flex)
 
 export const Navbar = () => {
@@ -15,15 +14,14 @@ export const Navbar = () => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 10)
     }
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
+    window.addEventListener("scroll", handleScroll)
+    return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
   return (
     <>
-      <MotionFlex as="nav" position="fixed" top={0} left={0} right={0} zIndex={50} justify="space-between" align="center" px={{ base: 4, md: 8 }} py={scrolled ? 3 : 5} bg={scrolled ? { base: 'whites.bgs', _dark: 'blackAlpha.800' } : 'transparent'} backdropFilter={scrolled ? 'blur(12px)' : 'none'} initial={{ y: -100 }} animate={{ y: 0 }} transitionDuration="0.5s">
+      <MotionFlex as="nav" position="fixed" top={0} left={0} right={0} zIndex={50} justify="space-between" align="center" px={{ base: 4, md: 8 }} py={ scrolled ? 3 : 5 } bg={ scrolled ? { base: "whites.bgs", _dark: "blackAlpha.800" } : "transparent" } backdropFilter={ scrolled ? "blur(12px)" : "none" } initial={{ y: -100 }} animate={{ y: 0 }} transitionDuration="0.5s">
     
-        {/* Kiri: teks bertumpuk */}
         <VStack align="start" gap={0}>
           <Heading size="md" fontFamily="serif">
             catardot
@@ -33,13 +31,12 @@ export const Navbar = () => {
           </Text>
         </VStack>
 
-        {/* Kanan: tombol dark mode + avatar */}
         <HStack gap={4}>
-          <Button rel="noopener noreferrer" size="sm" boxSize={10} variant="ghost" bg="inherit" _hover={{ transform: 'scale(1.2)' }} asChild>
+          <Button rel="noopener noreferrer" size="sm" boxSize={10} variant="ghost" bg="inherit" _hover={{ transform: "scale(1.2)" }} asChild>
             <ColorModeButton />
           </Button>
 
-          <Menu.Root positioning={{ placement: 'right-end' }}>
+          <Menu.Root positioning={{ placement: "right-end" }}>
             <Menu.Trigger rounded="full" focusRing="outside">
               <Avatar.Root size="lg">
                 <Avatar.Fallback name="Segun Adebayo" />

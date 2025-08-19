@@ -1,4 +1,4 @@
-'use client'
+"use client"
 
 import { Box, VStack, Text } from "@chakra-ui/react"
 

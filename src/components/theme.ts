@@ -1,15 +1,15 @@
-import { createSystem, defaultConfig, defineConfig } from '@chakra-ui/react'
-import { textStyles } from './fonts'
+import { textStyles } from "@/components/fonts"
+import { createSystem, defaultConfig, defineConfig } from "@chakra-ui/react"
 
 const config = defineConfig({
   theme: {
     textStyles,
-    breakpoints: {
-      sm: '320px',
-      md: '768px',
-      lg: '960px',
-      xl: '1200px',
-    },
+    // breakpoints: {
+    //   sm: "320px",
+    //   md: "768px",
+    //   lg: "960px",
+    //   xl: "1200px",
+    // },
     tokens: {
       colors: {
         brand: {
@@ -65,8 +65,8 @@ const config = defineConfig({
     },
     keyframes: {
       spin: {
-        from: { transform: 'rotate(0deg)' },
-        to: { transform: 'rotate(360deg)' },
+        from: { transform: "rotate(0deg)" },
+        to: { transform: "rotate(360deg)" },
       },
     },
   },

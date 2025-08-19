@@ -1,78 +1,62 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-'use client'
+"use client"
 
-import { signIn } from "next-auth/react"
-import { useState, Suspense, lazy } from 'react'
-import { Box, Container, VStack, Text, Button, Card, Heading, Spinner, Badge, Icon, SimpleGrid, GridItem } from '@chakra-ui/react'
-import { BookOpen, CalendarDays, Sparkles, Heart, Leaf } from 'lucide-react'
-import { ColorModeButton } from '@/components/ui/color-mode'
-import { SheetsIcons, NotionIcons } from '@/components/icons/darkIcon'
+import { auth, signIn } from "@/auth"
+import { ColorModeButton } from "@/components/ui/color-mode"
+import { BookOpen, CalendarDays, Sparkles, Heart, Leaf } from "lucide-react"
+import { SheetsIcons, NotionIcons, GoogleIcons } from "@/components/icons/iconsDarkMode"
+import { Box, Container, VStack, Text, Button, Card, Heading, Icon, SimpleGrid, GridItem } from "@chakra-ui/react"
 
-const GoogleIcon = lazy(() => import('../../../components/icons/GoogleIcon'))
-
-const IconFallback = () => (
-  <Spinner size="sm" color="gray.400"/>
-)
-
-export const LandingPage = () => {
-  const [hovered, setHovered] = useState(false)
-
+export const LandingPage = async () => {
+  const session = await auth()
+  console.log(session)
   return (
     <>
-      <Box minH='100vh' bg='bg.canvas' position='relative' overflow='hidden'>
-        <Button position='fixed' top='4' right='4' zIndex='50' rel='noopener noreferrer' size='sm' boxSize={10} variant='ghost' bg='inherit' _hover={{ transform: 'scale(1.2)' }} asChild>
+      <Box minH="100vh" bg="bg.canvas" position="relative" overflow="hidden">
+        <Button position="fixed" top="4" right="4" zIndex="50" rel="noopener noreferrer" size="sm" boxSize={10} variant="ghost" bg="inherit" _hover={{ transform: "scale(1.2)" }} asChild>
           <ColorModeButton />
         </Button>
         
-        <Box position='absolute' inset='0' overflow='hidden' pointerEvents='none'>
-          <Box position='absolute' top='20' left='10' opacity='0.05'>
-            <Icon as={Leaf} boxSize='24' color='brand.500' transform='rotate(12deg)' />
+        <Box position="absolute" inset="0" overflow="hidden" pointerEvents="none">
+          <Box position="absolute" top="20" left="10" opacity="0.05">
+            <Icon as={Leaf} boxSize="24" color="brand.500" transform="rotate(12deg)" />
           </Box>
-          <Box position='absolute' top='40' right='16' opacity='0.05'>
-            <Icon as={Heart} boxSize='16' color='brand.500' transform='rotate(-12deg)' />
+          <Box position="absolute" top="40" right="16" opacity="0.05">
+            <Icon as={Heart} boxSize="16" color="brand.500" transform="rotate(-12deg)" />
           </Box>
-          <Box position='absolute' bottom='32' left='20' opacity='0.05'>
-            <Icon as={Sparkles} boxSize='20' color='brand.500' transform='rotate(45deg)' />
+          <Box position="absolute" bottom="32" left="20" opacity="0.05">
+            <Icon as={Sparkles} boxSize="20" color="brand.500" transform="rotate(45deg)" />
           </Box>
-          <Box position='absolute' bottom='20' right='10' opacity='0.05'>
-            <Icon as={BookOpen} boxSize='18' color='brand.500' transform='rotate(-6deg)' />
+          <Box position="absolute" bottom="20" right="10" opacity="0.05">
+            <Icon as={BookOpen} boxSize="18" color="brand.500" transform="rotate(-6deg)" />
           </Box>
-          <Box position='absolute' top='40' left='80' opacity='0.05' >
-            <Icon as={Sparkles} boxSize='40' color='brand.500' transform='rotate(-12deg)' />
+          <Box position="absolute" top="40" left="80" opacity="0.05" >
+            <Icon as={Sparkles} boxSize="40" color="brand.500" transform="rotate(-12deg)" />
           </Box>
         </Box>
 
-        <Container maxW='2xl' px='6' py='20' position='relative' zIndex='10'>
-          <VStack textAlign='center' mb='16' spaceY='12'>
-            <VStack mb='12' spaceY='8'>
-              <Box position='relative' mt='6' mb='8'>
-                <Icon as={BookOpen} boxSize='12' color='brand.500' mx='auto' opacity='0.8' />
+        <Container maxW="2xl" px="6" py="20" position="relative" zIndex="10">
+          <VStack textAlign="center" mb="16" spaceY="12">
+            <VStack mb="12" spaceY="8">
+              <Box position="relative" mt="6" mb="8">
+                <Icon as={BookOpen} boxSize="12" color="brand.500" mx="auto" opacity="0.8" />
               </Box>
               
-              <Heading color='fg.default' mb='6' textStyle='headingLP'>
+              <Heading color="fg.default" mb="6" textStyle="headingLP">
                 Catardot.
               </Heading>
-              
-              {/* <Heading textStyle='subHeadingLP' color="fg.default" mb="6">
-                One Sentence,
-                <br />
-                <Text as="span" fontWeight="bold">
-                  One Day
-                </Text>
-              </Heading> */}
-              <Heading textStyle='subHeadingLP' color='fg.default' mb='6'>
+              <Heading textStyle="subHeadingLP" color="fg.default" mb="6">
                 Write Less,
                 <br />
-                <Text as='span' fontWeight='bold'>
+                <Text as="span" fontWeight="bold">
                   Notice More.
                 </Text>
               </Heading>
 
-              <Text color='fg.muted' textStyle='textLP' maxW='lg' mx='auto' mb='12'>
+              <Text color="fg.muted" textStyle="textLP" maxW="lg" mx="auto" mb="12">
                 Daily reflection, made gentle and simple <br />
-                Inspired by 
-                <Text as='em' fontWeight='medium' color='fg.default'>
-                  Homework for Life
+                Inspired by {""}
+                <Text as="em" fontWeight="medium" color="fg.default">
+                  Homework for Life.
                 </Text>
               </Text>
             </VStack>
@@ -80,68 +64,64 @@ export const LandingPage = () => {
             {/* Features Grid */}
             <SimpleGrid columns={{ base: 1, md: 2 }} gap={8}>
               {/* Card 1 */}
-              <Box p={8} textAlign='center' bg='inherit'>
-                <Box w={16} h={16} rounded='2xl' display='flex' alignItems='center' justifyContent='center' mx='auto' mb={6} border='1px solid' borderColor='sage.500'>
-                  <Icon as={CalendarDays} boxSize={10} color='brand.500'/>
+              <Box p={8} textAlign="center" bg="inherit">
+                <Box w={16} h={16} rounded="2xl" display="flex" alignItems="center" justifyContent="center" mx="auto" mb={6} border="1px solid" borderColor="sage.500">
+                  <Icon as={CalendarDays} boxSize={10} color="brand.500"/>
                 </Box>
-                <Heading as='h4' textStyle='headLPGrid' mb={4} color='card.foreground'>
-                  Daily Practice
+                <Heading as="h4" textStyle="headLPGrid" mb={4} color="card.foreground">
+                  DAILY PRACTICE
                 </Heading>
-                <Text color='muted.foreground' textStyle='textLPGrid'>
+                <Text color="muted.foreground" textStyle="textLPGrid">
                   One sentence each day to nurture a steady habit of reflection.
                 </Text>
               </Box>
 
               {/* Card 2 */}
-              <Box p={8} textAlign='center' bg='inherit'>
-                <Box w={16} h={16} rounded='2xl' display='flex' alignItems='center' justifyContent='center' mx='auto' mb={6} border='1px solid' borderColor='sage.500'>
-                  <Icon as={Sparkles} boxSize={10} color='brand.500'/>
+              <Box p={8} textAlign="center" bg="inherit">
+                <Box w={16} h={16} rounded="2xl" display="flex" alignItems="center" justifyContent="center" mx="auto" mb={6} border="1px solid" borderColor="sage.500">
+                  <Icon as={Sparkles} boxSize={10} color="brand.500"/>
                 </Box>
-                <Heading as='h4' textStyle='headLPGrid' mb={4} color='card.foreground'>
+                <Heading as="h4" textStyle="headLPGrid" mb={4} color="card.foreground">
                   Meaningful Moments
                 </Heading>
-                <Text color='muted.foreground' textStyle='textLPGrid'>
-                  Focus on what truly matters by distilling your day into its most significant moment
+                <Text color="muted.foreground" textStyle="textLPGrid">
+                  Focus on what truly matters by distilling your day into its most significant moment.
                 </Text>
               </Box>
 
-              {/* Card 3 di bawah, posisi center */}
+              {/* Card 3 */}
               <GridItem colSpan={{ base: 1, md: 2 }}>
-                <Box p={8} textAlign='center' maxW='lg' mx='auto' bg='inherit'>
-                  <Box w={16} h={16} rounded='2xl' display='flex' alignItems='center' justifyContent='center' mx='auto' mb={6} border='1px solid' borderColor='sage.500'>
-                    <Icon as={BookOpen} boxSize={10} color='brand.500'/>
+                <Box p={8} textAlign="center" maxW="lg" mx="auto" bg="inherit">
+                  <Box w={16} h={16} rounded="2xl" display="flex" alignItems="center" justifyContent="center" mx="auto" mb={6} border="1px solid" borderColor="sage.500">
+                    <Icon as={BookOpen} boxSize={10} color="brand.500"/>
                   </Box>
-                  <Heading as='h4' textStyle='headLPGrid' mb={4} color='card.foreground'>
+                  <Heading as="h4" textStyle="headLPGrid" mb={4} color="card.foreground">
                     Personal Journey
                   </Heading>
-                  <Text color='muted.foreground' textStyle='textLPGrid'>
-                    Create a living timeline of your life, one sentence at a time
+                  <Text color="muted.foreground" textStyle="textLPGrid">
+                    Create a living timeline of your life, one sentence at a time.
                   </Text>
                 </Box>
               </GridItem>
             </SimpleGrid>
                         
             {/* Login card */}
-            <Card.Root bg='inherit' maxW='md' w='full' mx='auto' shadow='sm' border='1px solid' borderColor='sage.500'>
-              <Card.Header textAlign='center' pb={4}>
-                <Heading textStyle='headingLPLogin'>
+            <Card.Root bg="inherit" maxW="md" w="full" mx="auto" shadow="sm" border="1px solid" borderColor="sage.500">
+              <Card.Header textAlign="center" pb={4}>
+                <Heading textStyle="headingLPLogin">
                   Begin Your Journey
                 </Heading>
-                <Text color='gray.500' textStyle='textLPLogin'>
-                  {/* Sign in with Google to start your daily sentence practice */}
+                <Text color="gray.500" textStyle="textLPLogin">
                   Sign in with Google to start your one-sentence-a-day practice
                 </Text>
               </Card.Header>
               <Card.Body>
                 <VStack gap={4}>
-                  <Button w='full' bg="white" color="gray.800" borderWidth={1} borderColor="gray.300" _hover={{ bg: "gray.50" }} textStyle='googleLPLogin' onClick={() => signIn("google")}>
-                    <Suspense fallback={<IconFallback />}>
-                      <GoogleIcon isHovered={hovered}/>
-                    </Suspense>
+                  <Button w="full" bg="white" color="gray.800" borderWidth={1} borderColor="gray.300" _hover={{ bg: "gray.50" }} textStyle="googleLPLogin" onClick={() => signIn("google", { callbackUrl: "/story" })}>
+                    <GoogleIcons boxSize={8}/>
                     Continue with Google
                   </Button>
-                  <Text textStyle='textLPLogin' color="gray.500" textAlign="center">
-                    {/* Your journal entries will be securely stored and synced with Google Sheets for easy access across devices. */}
+                  <Text textStyle="textLPLogin" color="gray.500" textAlign="center">
                     Your reflections are stored in your own Google Sheets — private to you and accessible only with your account.
                   </Text>
                 </VStack>
@@ -150,11 +130,6 @@ export const LandingPage = () => {
           </VStack>
 
           <VStack textAlign="center" spaceY="12">
-            {/* <Box maxW="lg" mx="auto">
-              <Text color="fg.muted" lineHeight="relaxed" fontSize="sm" fontWeight="light">
-                Each day, capture one meaningful moment in a single sentence. Build a personal archive of your life&apos;s quiet observations and gentle discoveries.
-              </Text>
-            </Box> */}
 
             <Box borderTop="1px" borderColor="sage.500" pt="12" w="full">
               <SimpleGrid columns={{ base: 1, md: 2 }} gap={10} mt="12">
@@ -166,7 +141,7 @@ export const LandingPage = () => {
 
                   {/* Foreground Content */}
                   <VStack gap={3} position="relative" zIndex={1}>
-                    <Text color="brand.600" textStyle='miniHeadingLPFeat'>
+                    <Text color="brand.600" textStyle="miniHeadingLPFeat">
                       Feature
                     </Text>
                     <Text textStyle='headingLPFeat'>
@@ -186,13 +161,13 @@ export const LandingPage = () => {
 
                   {/* Foreground Content */}
                   <VStack gap={3} position="relative" zIndex={1}>
-                    <Text color="fg.muted" textStyle='miniHeadingLPFeat'>
+                    <Text color="fg.muted" textStyle="miniHeadingLPFeat">
                       Next Update
                     </Text>
-                    <Text textStyle='headingLPFeat'>
+                    <Text textStyle="headingLPFeat">
                       Notion Integration
                     </Text>
-                    <Text textStyle='textLPFeat' color="fg.muted/70" maxW="xs" mx="auto">
+                    <Text textStyle="textLPFeat" color="fg.muted/70" maxW="xs" mx="auto">
                       Connect your journal to your Notion workspace
                     </Text>
                   </VStack>
@@ -209,14 +184,6 @@ export const LandingPage = () => {
                   <Heading size="xl" fontWeight="bold">
                     Homework for Life
                   </Heading>
-
-                  {/* <Text color="fg.muted" fontSize="lg" lineHeight="tall">
-                    Created by storyteller <Text as="span" fontWeight="semibold">Matthew Dicks</Text>, 
-                    this gentle practice invites you to capture{" "}
-                    <Text as="span" color="brand.600">one sentence about your day</Text>—every day. 
-                    It&apos;s less about perfection, and more about noticing the small moments that 
-                    make life meaningful.
-                  </Text> */}
                   <Text color="fg.muted" fontSize="lg" lineHeight="tall">
                     Storyteller <Text as="span" fontWeight="semibold">Matthew Dicks</Text> once asked himself a simple question: 
                     how do you notice the moments that make an ordinary day worth remembering?  

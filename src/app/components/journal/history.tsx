@@ -1,10 +1,10 @@
-'use client'
+"use client"
 
-import { useDebounce } from 'use-debounce'
-import { useState, useEffect } from 'react'
-import { monthNames } from '@/app/utils/data/month'
-import { HistoryModal } from '@/app/modals/historyModal'
-import { Box, VStack, HStack, Text, Portal, Select, createListCollection } from '@chakra-ui/react'
+import { useDebounce } from "use-debounce"
+import { useState, useEffect } from "react"
+import { monthNames } from "@/app/utils/month"
+import { HistoryModal } from "@/app/components/modals/historyModal"
+import { Box, VStack, HStack, Text, Portal, Select, createListCollection } from "@chakra-ui/react"
 
 interface JournalEntry {
   storyDate: string
@@ -18,7 +18,7 @@ const monthCollection = createListCollection({
   items: monthNames.map((month, idx) => ({
     label: month,
     value: (idx + 1).toString(),
-    category: 'Months',
+    category: "Months",
   })),
 })
 
@@ -26,7 +26,7 @@ const yearCollection = createListCollection({
   items: years.map((y) => ({
     label: y.toString(),
     value: y.toString(),
-    category: 'Years',
+    category: "Years",
   })),
 })
 
@@ -57,7 +57,7 @@ export const History = () => {
         setEntries(entriesArray)
         setCache(prev => ({ ...prev, [key]: entriesArray }))
       } catch (err) {
-        console.error('Error fetching monthly entries:', err)
+        console.error("Error fetching monthly entries:", err)
         setEntries([])
       } finally {
         setLoading(false)
@@ -139,10 +139,10 @@ export const History = () => {
           </Box>
         ) : entries.length > 0 ? (
           entries.map((entry) => (
-            <Box key={entry.storyDate} shadow="sm" p={4} _hover={{ shadow: 'md' }}>
+            <Box key={entry.storyDate} shadow="sm" p={4} _hover={{ shadow: "md" }}>
               <VStack align="start" gap={2}>
                 <Text fontWeight="bold">
-                  {new Date(entry.storyDate).toLocaleDateString('id-ID')}
+                  {new Date(entry.storyDate).toLocaleDateString("id-ID")}
                 </Text>
                 <Text fontSize="sm">
                   {entry.content}

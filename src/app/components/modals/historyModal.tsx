@@ -1,10 +1,10 @@
 // /* eslint-disable @typescript-eslint/no-explicit-any */
-'use client'
+"use client"
 
-import { useState } from 'react'
+import { useState } from "react"
 import { useColorModeValue } from "@/components/ui/color-mode"
-import { FiCalendar, FiEdit3, FiSave, FiX, FiEye } from 'react-icons/fi'
-import { Box, Text, VStack, HStack, Button, Textarea, Card, Dialog, Portal, CloseButton } from '@chakra-ui/react'
+import { FiCalendar, FiEdit3, FiSave, FiX, FiEye } from "react-icons/fi"
+import { Box, Text, VStack, HStack, Button, Textarea, Card, Dialog, Portal, CloseButton } from "@chakra-ui/react"
 
 interface JournalEntry {
   storyDate: string
@@ -21,17 +21,17 @@ export const HistoryModal = ({ entry, onSave }: HistoryModalProps) => {
   const [isEditing, setIsEditing] = useState(false)
   const [editedContent, setEditedContent] = useState(entry.content || "")
 
-  const cardBg = useColorModeValue('white', 'gray.800')
-  const borderColor = useColorModeValue('gray.200', 'gray.600')
-  const contentColor = useColorModeValue('gray.600', 'gray.400')
+  const cardBg = useColorModeValue("white", "gray.800")
+  const borderColor = useColorModeValue("gray.200", "gray.600")
+  const contentColor = useColorModeValue("gray.600", "gray.400")
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return '-'
-    return new Date(dateString).toLocaleDateString('id-ID', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
+    return new Date(dateString).toLocaleDateString("id-ID", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric"
     })
   }
 
@@ -44,9 +44,9 @@ export const HistoryModal = ({ entry, onSave }: HistoryModalProps) => {
   const handleSave = async () => {
     setIsSaving(true)
     try {
-      const response = await fetch('/api/story', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/story", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           storyDate: entry.storyDate,
           content: editedContent
@@ -59,11 +59,11 @@ export const HistoryModal = ({ entry, onSave }: HistoryModalProps) => {
         onSave({ ...entry, content: editedContent })
         setIsEditing(false)
       } else {
-        console.error('Error updating journal:', data.error)
+        console.error("Error updating journal:", data.error)
         resetState()
       }
     } catch (error) {
-      console.error('Fetch error:', error)
+      console.error("Fetch error:", error)
       resetState()
     } finally {
       setIsSaving(false)
@@ -85,7 +85,7 @@ export const HistoryModal = ({ entry, onSave }: HistoryModalProps) => {
             <Dialog.Content>
               <Dialog.Header>
                 <Dialog.Title>
-                  {isEditing ? 'Edit Catatan' : 'Detail Catatan'}
+                  {isEditing ? "Edit Catatan" : "Detail Catatan"}
                 </Dialog.Title>
                 <Dialog.CloseTrigger asChild>
                   <CloseButton size="lg" />
@@ -93,7 +93,7 @@ export const HistoryModal = ({ entry, onSave }: HistoryModalProps) => {
               </Dialog.Header>
               <Dialog.Body>
                 <VStack align="stretch" gap={4}>
-                  <Card.Root bg={useColorModeValue('blue.50', 'blue.900')} variant="outline">
+                  <Card.Root bg={useColorModeValue("blue.50", "blue.900")} variant="outline">
                     <Card.Body py={3}>
                       <HStack gap={2}>
                         <Box as={FiCalendar} color="blue.500" />
@@ -133,7 +133,7 @@ export const HistoryModal = ({ entry, onSave }: HistoryModalProps) => {
                       </Button>
                       <Button colorScheme="blue" onClick={handleSave} disabled={!editedContent.trim()} loading={isSaving}>
                         <FiSave />
-                        {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
+                        {isSaving ? "Menyimpan..." : "Simpan Perubahan"}
                       </Button>
                     </>
                   ) : (
