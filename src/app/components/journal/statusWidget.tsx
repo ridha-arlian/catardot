@@ -27,7 +27,9 @@ export const StatusWidget = ({ refreshTrigger }: StatusWidgetProps) => {
     setTodayDate(today)
 
     try {
-      const response = await fetch(`/api/story?storyDate=${today}`)
+      const response = await fetch(`/api/story?storyDate=${today}`,{
+      credentials: "include", // ← wajib untuk cookie session
+    })
       const data = await response.json()
       setHasJournalToday(data.exists === true)
     } catch (error) {

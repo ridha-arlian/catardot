@@ -1,19 +1,16 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-"use client"
-
-import { Box} from "@chakra-ui/react"
-import { useSession } from "next-auth/react"
+// /* eslint-disable @typescript-eslint/no-unused-vars */
+import { auth } from "../../../auth"
+import { Box } from "@chakra-ui/react"
+import { redirect } from "next/navigation"
 import { Story } from "@/app/components/journal/story"
-import { Navbar } from "@/app/components/journal/navbar"
 import { Footer } from "@/app/components/journal/footer"
-import NotAuthorizedPage from "@/app/not-authorized/page"
+import { Navbar } from "@/app/components/journal/navbar"
 
-export default function StoryPage() {
-  const { data: session, status } = useSession()
+export default async function StoryPage() {
+  const session = await auth();
   
-  if (status === "loading") return null
-  if (status === "unauthenticated" || !session) {
-    return <NotAuthorizedPage />
+  if (!session?.user) {
+    redirect('/not-authorized');
   }
 
   return (
@@ -24,9 +21,7 @@ export default function StoryPage() {
 
         <Box minH="50vh" mt="60px" bg="gray.50">
 
-          <Story onDateChange={function (date: string): void {
-            throw new Error("Function not implemented.")
-          } } />
+          <Story />
 
           <Footer/>
         

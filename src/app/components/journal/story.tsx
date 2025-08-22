@@ -14,7 +14,7 @@ import { StatusWidget } from "@/app/components/journal/statusWidget"
 import { Box, VStack, HStack, Heading, Text, Button, Textarea, Center, Skeleton } from "@chakra-ui/react"
 
 interface StoryProps {
-  onDateChange: (date: string) => void
+  // onDateChange: (date: string) => void
   onJournalSaved?: (journalData: any) => void
 }
 
@@ -31,6 +31,7 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
   const [isCheckingExisting, setIsCheckingExisting] = useState(false)
 
   const { data: session } = useSession()
+  const [isSettingUpSpreadsheet, setIsSettingUpSpreadsheet] = useState(false)
   const hasWrittenToday = Boolean(existingJournal)
   const refreshPrompts = () => setPrompts(getRandomPrompts())
 
@@ -214,6 +215,56 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
       checkExistingJournal(selectedDate)
     }
   }, [selectedDate, session?.user?.spreadsheetId, session?.accessToken])
+  
+  useEffect(() => {
+    const setupSpreadsheet = async () => {
+      if (session?.user?.email && !session.user.spreadsheetId && !isSettingUpSpreadsheet) {
+        setIsSettingUpSpreadsheet(true)
+        try {
+          const response = await fetch('/api/sheets', { method: 'POST' })
+          const data = await response.json()
+          
+          if (data.spreadsheetId) {
+            console.log('✅ Spreadsheet ready:', data.spreadsheetId)
+            toaster.create({
+              title: "Journal Ready!",
+              description: "Your personal journal spreadsheet has been created.",
+              type: "success"
+            })
+          }
+        } catch (error) {
+          console.error('❌ Setup failed:', error)
+          toaster.create({
+            title: "Setup Failed",
+            description: "There was an issue setting up your journal. Please try again.",
+            type: "error"
+          })
+        } finally {
+          setIsSettingUpSpreadsheet(false)
+        }
+      }
+    }
+
+    if (session?.user) {
+      setupSpreadsheet()
+    }
+  }, [session, isSettingUpSpreadsheet])
+
+   // Show loading state saat setup
+  if (!session?.user) {
+    return <Skeleton height="200px" /> // loading saat belum ada session
+  }
+
+  if (isSettingUpSpreadsheet) {
+    return (
+      <Center minH="200px">
+        <VStack gap={4}>
+          <Skeleton height="20px" width="200px" />
+          <Text>Setting up your journal...</Text>
+        </VStack>
+      </Center>
+    )
+  }
   
   return (
     <Box mt="60px" bg="gray.50">
