@@ -1,5 +1,4 @@
 "use client"
-
 import { ShieldIcon } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"

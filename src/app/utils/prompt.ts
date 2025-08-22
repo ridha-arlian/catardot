@@ -51,12 +51,6 @@ export const PROMPT = [
   `Apa yang ingin kamu kirim sebagai pesan untuk dirimu 10 tahun ke depan dari hari ini?`,
 ]
 
-export const getRandomPrompt = (array: string[]): string => {
-  return array[Math.floor(Math.random() * array.length)]
-}
+export const getRandomPrompt = (array: string[]): string => { return array[Math.floor(Math.random() * array.length)] }
 
-export const getRandomPrompts = () => {
-  return {
-    promptContent: getRandomPrompt(PROMPT),
-  }
-}
+export const getRandomPrompts = () => { return { promptContent: getRandomPrompt(PROMPT) }}

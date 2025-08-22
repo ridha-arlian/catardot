@@ -3,6 +3,7 @@ import { google } from "googleapis"
 import { auth } from "../../../../auth"
 import { redis } from "@/app/lib/redis"
 import { NextRequest, NextResponse } from "next/server"
+import { invalidateJournalCache } from "@/app/utils/invalidate-cache"
 
 export async function GET(request: NextRequest) {
   try {
@@ -18,6 +19,7 @@ export async function GET(request: NextRequest) {
     const storyDate = searchParams.get("storyDate")
     const month = searchParams.get("month")
     const year = searchParams.get("year")
+    const forceRefresh = searchParams.get("refresh") === "true"
 
     if (!storyDate && !(month && year)) {
       return NextResponse.json(
@@ -29,24 +31,57 @@ export async function GET(request: NextRequest) {
     const spreadsheetId = session.user.spreadsheetId
     const accessToken = session.accessToken
 
-    const cacheKey = storyDate
-      ? `story:${storyDate}`
-      : `stories:${year}-${month}`
+    const cacheKey = storyDate ? `story:${storyDate}` : `stories:${year}-${month}`
+    // const cached = await redis.get(cacheKey)
+    const today = new Date().toISOString().split('T')[0]
 
-    // --- Cek Redis ---
-    const cached = await redis.get(cacheKey)
-    if (cached) {
+    let cached = null
+
+    if (!forceRefresh) {
+      cached = await redis.get(cacheKey)
+    }
+
+    // if (cached) {
+    // if (cached && !forceRefresh) {
+    //   try {
+    //     const cachedData = typeof cached === "string" ? JSON.parse(cached) : cached
+
+    //     const parsed = typeof cached === "string" ? JSON.parse(cached) : cached
+    //     console.log("Returning data from Redis cache")
+    //     return NextResponse.json(parsed)
+    //   } catch (e) {
+    //     console.warn("Failed to parse cached data, clearing cache", e)
+    //     await redis.del(cacheKey)
+    //   }
+    // }
+
+    if (cached && !forceRefresh) {
       try {
-        const parsed = typeof cached === "string" ? JSON.parse(cached) : cached
-        console.log("Returning data from Redis cache")
-        return NextResponse.json(parsed)
+        const cachedData = typeof cached === "string" ? JSON.parse(cached) : cached
+        
+        // Jika request untuk hari ini, cek apakah cache masih fresh
+        if (storyDate === today) {
+          const cacheAge = Date.now() - (cachedData.cachedAt || 0)
+          const maxAge = 2 * 60 * 1000 // 2 menit untuk data hari ini
+          
+          if (cacheAge > maxAge) {
+            console.log("Cache expired for today's data, fetching fresh data")
+            await redis.del(cacheKey)
+          } else {
+            console.log("Returning fresh data from Redis cache")
+            return NextResponse.json(cachedData.data)
+          }
+        } else {
+          // Untuk data historis, langsung return dari cache
+          console.log("Returning historical data from Redis cache")
+          return NextResponse.json(cachedData.data || cachedData)
+        }
       } catch (e) {
         console.warn("Failed to parse cached data, clearing cache", e)
         await redis.del(cacheKey)
       }
     }
 
-    // --- Setup Google Sheets API ---
     const oAuth2Client = new google.auth.OAuth2()
     oAuth2Client.setCredentials({ access_token: accessToken })
     const sheets = google.sheets({ version: "v4", auth: oAuth2Client })
@@ -61,34 +96,46 @@ export async function GET(request: NextRequest) {
     let result: any = null
 
     if (storyDate) {
-      // Cari persis satu tanggal
       const row = rows.find(r => r[0] === storyDate)
       result = row ? { date: row[0], content: row[1] } : null
     } else if (month && year) {
-      // Ambil semua di bulan & tahun tertentu
-      const stories = rows
-        .filter((r, idx) => idx > 0 && r[0]) // skip header
-        .map(r => ({ date: r[0], content: r[1] }))
-        .filter(story => {
-          const d = new Date(story.date)
-          return (
-            d.getMonth() + 1 === Number(month) &&
-            d.getFullYear() === Number(year)
-          )
-        })
+      const stories = rows.filter((r, idx) => idx > 0 && r[0]).map(r => ({ date: r[0], content: r[1] })).filter(story => {
+        const d = new Date(story.date)
+        return (d.getMonth() + 1 === Number(month) && d.getFullYear() === Number(year))
+      })
       result = stories
     }
 
-    // TTL untuk Redis
     let ttlSeconds = 600
+
+    // if (storyDate) {
+    //   const now = new Date()
+    //   const endOfDay = new Date(now)
+    //   endOfDay.setHours(23, 59, 59, 999)
+    //   ttlSeconds = Math.ceil((endOfDay.getTime() - now.getTime()) / 1000)
+    // }
+
     if (storyDate) {
-      const now = new Date()
-      const endOfDay = new Date(now)
-      endOfDay.setHours(23, 59, 59, 999)
-      ttlSeconds = Math.ceil((endOfDay.getTime() - now.getTime()) / 1000)
+      if (storyDate === today) {
+        // Data hari ini: cache 2 menit saja
+        ttlSeconds = 120
+      } else {
+        // Data historis: cache sampai akhir hari
+        const now = new Date()
+        const endOfDay = new Date(now)
+        endOfDay.setHours(23, 59, 59, 999)
+        ttlSeconds = Math.ceil((endOfDay.getTime() - now.getTime()) / 1000)
+      }
     }
 
-    await redis.set(cacheKey, JSON.stringify(result), { ex: ttlSeconds })
+    const dataToCache = storyDate === today 
+      ? { data: result, cachedAt: Date.now() }
+      : result
+
+    // await redis.set(cacheKey, JSON.stringify(result), { ex: ttlSeconds })
+    await redis.set(cacheKey, JSON.stringify(dataToCache), { ex: ttlSeconds })
+
+    console.log(`Data cached with TTL: ${ttlSeconds} seconds`)
 
     return NextResponse.json(result)
   } catch (error: any) {
@@ -100,9 +147,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await auth()
-    if (!session?.accessToken) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    if (!session?.accessToken) { return NextResponse.json({ error: "Unauthorized" }, { status: 401 })}
 
     const body = await request.json()
     const { storyDate, content } = body
@@ -134,7 +179,7 @@ export async function POST(request: NextRequest) {
         spreadsheetId: finalSpreadsheetId,
         requestBody: {
           requests: [{ addSheet: { properties: { title: sheetName } } }],
-        },
+        }
       })
     }
 
@@ -145,10 +190,15 @@ export async function POST(request: NextRequest) {
 
     const rows = readResponse.data.values || []
     let rowIndex = -1
+    let isUpdate = false
 
     rows.forEach((row, idx) => {
       if (idx === 0) return
-      if (row[0] === storyDate) rowIndex = idx
+      // if (row[0] === storyDate) rowIndex = idx
+      if (row[0] === storyDate) {
+        rowIndex = idx
+        isUpdate = true
+      }
     })
 
     if (rowIndex > -1) {
@@ -175,28 +225,30 @@ export async function POST(request: NextRequest) {
       await sheets.spreadsheets.batchUpdate({
         spreadsheetId: finalSpreadsheetId,
         requestBody: {
-          requests: [
-            {
-              autoResizeDimensions: {
-                dimensions: { sheetId, dimension: "COLUMNS", startIndex: 0, endIndex: 2 },
-              },
-            },
-            {
-              repeatCell: {
-                range: { sheetId, startRowIndex: 0, endRowIndex: 1 },
-                cell: { userEnteredFormat: { textFormat: { bold: true } } },
-                fields: "userEnteredFormat.textFormat.bold",
-              },
-            },
-          ],
-        },
+          requests: [{
+            autoResizeDimensions: { dimensions: { sheetId, dimension: "COLUMNS", startIndex: 0, endIndex: 2 }},
+          },
+          {
+            repeatCell: {
+              range: { sheetId, startRowIndex: 0, endRowIndex: 1 },
+              cell: { userEnteredFormat: { textFormat: { bold: true }}},
+              fields: "userEnteredFormat.textFormat.bold",
+            }
+          }
+        ]}
       })
     }
+
+    await invalidateJournalCache(storyDate)
+    
+    console.log(`✅ Journal ${isUpdate ? 'updated' : 'created'} and cache invalidated for ${storyDate}`)
+
 
     return NextResponse.json({
       success: true,
       spreadsheetId: finalSpreadsheetId,
-      updated: rowIndex > -1,
+      updated: isUpdate,
+      message: `Journal entry ${isUpdate ? 'updated' : 'created'} successfully`
     })
   } catch (error: any) {
     console.error("Error saving story:", error)

@@ -1,10 +1,12 @@
-import { auth } from "../../../../../auth"
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { google } from "googleapis"
+import { auth } from "../../../../../auth"
 import { NextResponse } from "next/server"
 
 export async function POST(request: Request) {
   try {
     const session = await auth()
+
     if (!session || !session.accessToken) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
@@ -36,7 +38,6 @@ export async function POST(request: Request) {
       story: existingEntry?.[1] ?? "",
       storyDate: existingEntry?.[0] ?? storyDate,
     })
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error("Error checking story:", error)
     return NextResponse.json(

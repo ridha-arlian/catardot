@@ -50,52 +50,57 @@ export async function getOrCreateSpreadsheet(accessToken: string, userEmail: str
     await sheets.spreadsheets.batchUpdate({
       spreadsheetId,
       requestBody: {
-        requests: [
-          {
-            // Bold + background abu2 di header
-            repeatCell: {
-              range: { sheetId: firstSheetId, startRowIndex: 0, endRowIndex: 1 },
-              cell: {
-                userEnteredFormat: {
-                  textFormat: { bold: true },
-                  backgroundColor: { red: 0.9, green: 0.9, blue: 0.9 },
-                  horizontalAlignment: "CENTER",
-                },
-              },
-              fields: "userEnteredFormat(textFormat,backgroundColor,horizontalAlignment)",
+        requests: [{
+          // Bold + background abu2 di header
+          repeatCell: {
+            range: {
+              sheetId: firstSheetId,
+              startRowIndex: 0,
+              endRowIndex: 1
             },
-          },
-          {
-            // Freeze header
-            updateSheetProperties: {
-              properties: { sheetId: firstSheetId, gridProperties: { frozenRowCount: 1 } },
-              fields: "gridProperties.frozenRowCount",
+            cell: {
+              userEnteredFormat: {
+                textFormat: { bold: true },
+                backgroundColor: { red: 0.9, green: 0.9, blue: 0.9 },
+                horizontalAlignment: "CENTER",
+              }
             },
-          },
-          {
-            updateDimensionProperties: {
-              range: {
-                sheetId: firstSheetId,
-                dimension: "COLUMNS",
-                startIndex: 1,
-                endIndex: 2,
-              },
-              properties: { pixelSize: 400 },
-              fields: "pixelSize",
+            fields: "userEnteredFormat(textFormat,backgroundColor,horizontalAlignment)",
+          }
+        },
+        {
+          // Freeze header
+          updateSheetProperties: {
+            properties: {
+              sheetId: firstSheetId,
+              gridProperties: { frozenRowCount: 1 }
             },
-          },
-          {
-            autoResizeDimensions: {
-              dimensions: {
-                sheetId: firstSheetId,
-                dimension: "COLUMNS",
-                startIndex: 1,
-                endIndex: 2,
-              },
+            fields: "gridProperties.frozenRowCount",
+          }
+        },
+        {
+          updateDimensionProperties: {
+            range: {
+              sheetId: firstSheetId,
+              dimension: "COLUMNS",
+              startIndex: 1,
+              endIndex: 2,
             },
+            properties: { pixelSize: 400 },
+            fields: "pixelSize",
           },
-        ],
-      },
+        },
+        {
+          autoResizeDimensions: {
+            dimensions: {
+              sheetId: firstSheetId,
+              dimension: "COLUMNS",
+              startIndex: 1,
+              endIndex: 2,
+            }
+          }
+        }]
+      }
     })
 
     return spreadsheetId

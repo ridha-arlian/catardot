@@ -36,7 +36,7 @@ export const HistoryModal = ({ entry, onSave }: HistoryModalProps) => {
   }
 
   const resetState = () => {
-    setEditedContent(entry.content || '')
+    setEditedContent(entry.content || "")
     setIsEditing(false)
     setIsSaving(false)
   }

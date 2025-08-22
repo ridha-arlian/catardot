@@ -11,6 +11,7 @@ interface StatusWidgetProps {
 export const StatusWidget = ({ refreshTrigger }: StatusWidgetProps) => {
   const [todayDate, setTodayDate] = useState("")
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [hasJournalToday, setHasJournalToday] = useState(false)
 
   const getTodayDate = () => {
@@ -21,19 +22,37 @@ export const StatusWidget = ({ refreshTrigger }: StatusWidgetProps) => {
     return `${year}-${month}-${day}`
   }
 
-  const checkTodayJournal = async () => {
+  const checkTodayJournal = async (forceRefresh = false) => {
     setIsLoading(true)
+    setError(null)
     const today = getTodayDate()
     setTodayDate(today)
 
     try {
+      const params = new URLSearchParams({
+        storyDate: today
+      })
+
+      if (forceRefresh) {
+        params.append('refresh', 'true')
+      }
+
       const response = await fetch(`/api/story?storyDate=${today}`,{
-      credentials: "include", // ← wajib untuk cookie session
-    })
+        credentials: "include"
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
       const data = await response.json()
-      setHasJournalToday(data.exists === true)
+
+      const hasJournal = data !== null && data.date && data.content
+      setHasJournalToday(hasJournal)
+      console.log(`Journal check for ${today}:`, hasJournal ? 'Found' : 'Not found')
+
     } catch (error) {
       console.error("Error checking today journal:", error)
+      setError(error instanceof Error ? error.message : "Unknown error")
       setHasJournalToday(false)
     } finally {
       setIsLoading(false)
@@ -48,6 +67,7 @@ export const StatusWidget = ({ refreshTrigger }: StatusWidgetProps) => {
     const interval = setInterval(() => {
       const currentDate = getTodayDate()
       if (currentDate !== todayDate) {
+        console.log("Date changed, refreshing journal status")
         checkTodayJournal()
       }
     }, 60000)
@@ -57,7 +77,8 @@ export const StatusWidget = ({ refreshTrigger }: StatusWidgetProps) => {
 
   useEffect(() => {
     if (refreshTrigger && refreshTrigger > 0) {
-      checkTodayJournal()
+      console.log("Refresh trigger activated, force refreshing journal status")
+      checkTodayJournal(true)
     }
   }, [refreshTrigger])
 
@@ -79,6 +100,30 @@ export const StatusWidget = ({ refreshTrigger }: StatusWidgetProps) => {
     )
   }
 
+  if (error) {
+    return (
+      <Box width="336px">
+        <Card.Root className="bg-card border-border shadow-sm">
+          <Box p={4}>
+            <VStack align="start" gap={2}>
+              <HStack gap={3}>
+                <Status.Root size="sm" colorPalette="red">
+                  <Status.Indicator />
+                </Status.Root>
+                <Text fontWeight="semibold" fontSize="sm" color="red.600">
+                  Error Loading Status
+                </Text>
+              </HStack>
+              <Text fontSize="xs" color="red.500">
+                {error}
+              </Text>
+            </VStack>
+          </Box>
+        </Card.Root>
+      </Box>
+    )
+  }
+
   return (
     <>
       <Box width="336px">
@@ -95,6 +140,9 @@ export const StatusWidget = ({ refreshTrigger }: StatusWidgetProps) => {
               </HStack>
               <Text fontSize="xs">
                 {hasJournalToday ? "Kamu sudah menulis catatan harian hari ini. Terima kasih!" : "Kamu belum menulis catatan harian hari ini. Ayo buat catatan hari ini!" }
+              </Text>
+              <Text fontSize="xs" color="gray.500">
+                Terakhir dicek: {new Date().toLocaleTimeString('id-ID')}
               </Text>
             </VStack>
           </Box>

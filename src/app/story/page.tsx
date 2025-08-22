@@ -7,10 +7,10 @@ import { Footer } from "@/app/components/journal/footer"
 import { Navbar } from "@/app/components/journal/navbar"
 
 export default async function StoryPage() {
-  const session = await auth();
+  const session = await auth()
   
   if (!session?.user) {
-    redirect('/not-authorized');
+    redirect("/not-authorized")
   }
 
   return (

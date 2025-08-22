@@ -13,10 +13,7 @@ import { TimeWidget } from "@/app/components/journal/timeWidget"
 import { StatusWidget } from "@/app/components/journal/statusWidget"
 import { Box, VStack, HStack, Heading, Text, Button, Textarea, Center, Skeleton } from "@chakra-ui/react"
 
-interface StoryProps {
-  // onDateChange: (date: string) => void
-  onJournalSaved?: (journalData: any) => void
-}
+interface StoryProps { onJournalSaved?: (journalData: any) => void }
 
 export const Story = ({ onJournalSaved }: StoryProps) => {
   const [isLoading, setIsLoading] = useState(true)
@@ -38,24 +35,17 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
   const saveStoryToAPI = async (content: string, date: string, method: 'POST' | 'PUT' = 'POST') => {
     if (!session) throw new Error("User not authenticated")
 
-    const spreadsheetId = session?.user?.spreadsheetId
-    const accessToken = session?.accessToken
-    if (!spreadsheetId || !accessToken) throw new Error("Spreadsheet ID atau access token tidak tersedia")
-
-    let response
-    if (method === 'POST') {
-      response = await fetch("/api/story", {
-        method: 'POST',
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content, storyDate: date, spreadsheetId, access_token: accessToken }),
-      })
-    } else {
-      response = await fetch("/api/story", {
-        method: 'PUT',
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content, storyDate: date, spreadsheetId, access_token: accessToken }),
-      })
-    }
+    // Gunakan endpoint yang sudah diperbaiki dengan cache invalidation
+    const response = await fetch("/api/story", {
+      method: "POST", // POST aja, di server logic nya handle create/update
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ 
+        content, 
+        storyDate: date 
+        // Tidak perlu kirim spreadsheetId & accessToken, sudah di session
+      }),
+      credentials: 'include'
+    })
 
     const data = await response.json()
     if (!response.ok) throw new Error(data.error || "Gagal menyimpan catatan")
@@ -66,22 +56,13 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
     if (!session) throw new Error("User not authenticated")
     if (!date) return { exists: false }
 
-    const spreadsheetId = session?.user?.spreadsheetId
-    const accessToken = session?.accessToken
-  
-    if (!spreadsheetId || !accessToken) {
-      console.log("Waiting for spreadsheet to be ready...")
-      return { exists: false }
-    }
-
     setIsCheckingExisting(true)
     setIsLoading(true)
 
     try {
-      const response = await fetch("/api/story/check", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ storyDate: date, spreadsheetId }),
+      // Gunakan GET endpoint yang sudah diperbaiki
+      const response = await fetch(`/api/story?storyDate=${date}`, {
+        credentials: 'include'
       })
     
       if (!response.ok) {
@@ -90,10 +71,11 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
     
       const data = await response.json()
 
-      if (data.exists) {
+      // data bisa null (tidak ada) atau {date, content}
+      if (data && data.content) {
         setExistingJournal({ storyDate: date })
-        setTodayEntry(data.story || "")
-        setStoryContent(data.story || "")
+        setTodayEntry(data.content)
+        setStoryContent(data.content)
       } else {
         setExistingJournal(null)
         setTodayEntry("")
@@ -109,6 +91,11 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
       setIsCheckingExisting(false)
       setIsLoading(false)
     }
+  }
+
+  const triggerGlobalRefresh = () => {
+    setRefreshTrigger((prev) => prev + 1)
+    console.log("Story component triggering global refresh")
   }
 
   const showEmptyContentWarning = () => {
@@ -148,24 +135,37 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
       return
     }
 
-    const method = existingJournal ? 'PUT' : 'POST'
-
-    const savePromise = saveStoryToAPI(storyContent, selectedDate, method)
+    const isUpdate = Boolean(existingJournal)
+    const savePromise = saveStoryToAPI(storyContent, selectedDate)
+    
     createToasterPromise(
       savePromise,
-      method === 'PUT' ? "Catatan Berhasil Diperbarui!" : "Catatan Berhasil Disimpan!",
+      isUpdate ? "Catatan Berhasil Diperbarui!" : "Catatan Berhasil Disimpan!",
       "Menyimpan..."
     )
 
     try {
       const result = await savePromise
-      setStoryContent('')
-      refreshPrompts()
+      
+      // Update local state
       setExistingJournal({ storyDate: selectedDate })
       setTodayEntry(storyContent)
-      setLastCheckedDate('')
-      onJournalSaved?.(result.data)
-      setRefreshTrigger((prev) => prev + 1)
+      setLastCheckedDate("")
+      
+      // Clear form untuk entry baru
+      if (!isUpdate) {
+        setStoryContent("")
+        refreshPrompts()
+      }
+      
+      // Callback ke parent component
+      onJournalSaved?.(result)
+      
+      // 🔥 PENTING: Trigger global refresh untuk semua komponen
+      triggerGlobalRefresh()
+      
+      console.log(`Journal ${isUpdate ? 'updated' : 'saved'} successfully:`, result)
+      
     } catch (error) {
       console.error("Error saving story:", error)
     }
@@ -186,7 +186,15 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
 
     try {
       const result = await saveDraftPromise
-      console.log("Draft saved:", result.data)
+      console.log("Draft saved:", result)
+      
+      // Update state setelah save draft
+      setExistingJournal({ storyDate: selectedDate })
+      setTodayEntry(storyContent)
+      
+      // Trigger refresh
+      triggerGlobalRefresh()
+      
     } catch (error) {
       console.error("Error saving draft:", error)
     }
@@ -207,6 +215,13 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
   }
 
   useEffect(() => {
+    if (refreshTrigger > 0 && selectedDate) {
+      console.log("Refresh trigger detected, re-checking existing journal")
+      checkExistingJournal(selectedDate)
+    }
+  }, [refreshTrigger])
+
+  useEffect(() => {
     refreshPrompts()
   }, [])
 
@@ -221,11 +236,11 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
       if (session?.user?.email && !session.user.spreadsheetId && !isSettingUpSpreadsheet) {
         setIsSettingUpSpreadsheet(true)
         try {
-          const response = await fetch('/api/sheets', { method: 'POST' })
+          const response = await fetch("/api/sheets", { method: "POST" })
           const data = await response.json()
           
           if (data.spreadsheetId) {
-            console.log('✅ Spreadsheet ready:', data.spreadsheetId)
+            console.log("Spreadsheet ready:", data.spreadsheetId)
             toaster.create({
               title: "Journal Ready!",
               description: "Your personal journal spreadsheet has been created.",
@@ -233,7 +248,7 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
             })
           }
         } catch (error) {
-          console.error('❌ Setup failed:', error)
+          console.error("Setup failed:", error)
           toaster.create({
             title: "Setup Failed",
             description: "There was an issue setting up your journal. Please try again.",
@@ -250,9 +265,8 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
     }
   }, [session, isSettingUpSpreadsheet])
 
-   // Show loading state saat setup
   if (!session?.user) {
-    return <Skeleton height="200px" /> // loading saat belum ada session
+    return <Skeleton height="200px" />
   }
 
   if (isSettingUpSpreadsheet) {
@@ -260,7 +274,9 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
       <Center minH="200px">
         <VStack gap={4}>
           <Skeleton height="20px" width="200px" />
-          <Text>Setting up your journal...</Text>
+          <Text>
+            Setting up your journal...
+          </Text>
         </VStack>
       </Center>
     )
@@ -354,7 +370,7 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
         </VStack>
 
         {showPastEntries && (
-          <History/>
+          <History refreshTrigger={refreshTrigger}/>
         )}
       </Box>
     </Box>
