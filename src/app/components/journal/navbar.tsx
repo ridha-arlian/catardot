@@ -1,8 +1,8 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { useSession, signOut } from "next-auth/react"
 import React, { useState, useEffect } from "react"
+import { useSession, signOut } from "next-auth/react"
 import { ColorModeButton } from "@/components/ui/color-mode"
 import { Flex, HStack, Button, Avatar, Menu, Portal, VStack, Heading, Text } from "@chakra-ui/react"
 

@@ -1,105 +1,205 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { redis } from '@/app/lib/redis'
-import { NextRequest, NextResponse } from 'next/server'
-
-const SCRIPT_URL = process.env.GOOGLE_SCRIPT_URL
+import { google } from "googleapis"
+import { auth } from "../../../../auth"
+import { redis } from "@/app/lib/redis"
+import { NextRequest, NextResponse } from "next/server"
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const date = searchParams.get('storyDate')
-    const month = searchParams.get('month')
-    const year = searchParams.get('year')
-
-    if (!SCRIPT_URL) {
-      return NextResponse.json({ error: 'SCRIPT_URL is not defined' }, { status: 500 })
+    const session = await auth()
+    if (!session || !session.accessToken || !session.user?.spreadsheetId) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      )
     }
 
-    let cacheKey = ''
-    if (date) cacheKey = `story:${date}`
-    else if (month && year) cacheKey = `stories:${year}-${month}`
-    else
+    const { searchParams } = new URL(request.url)
+    const storyDate = searchParams.get("storyDate")
+    const month = searchParams.get("month")
+    const year = searchParams.get("year")
+
+    if (!storyDate && !(month && year)) {
       return NextResponse.json(
-        { error: 'Missing parameters (storyDate OR month+year required)' },
+        { error: "Missing parameters (storyDate OR month+year required)" },
         { status: 400 }
       )
+    }
 
+    const spreadsheetId = session.user.spreadsheetId
+    const accessToken = session.accessToken
+
+    const cacheKey = storyDate
+      ? `story:${storyDate}`
+      : `stories:${year}-${month}`
+
+    // --- Cek Redis ---
     const cached = await redis.get(cacheKey)
     if (cached) {
       try {
-        const parsed = typeof cached === 'string' ? JSON.parse(cached) : cached
-        console.log('Returning data from Redis cache')
+        const parsed = typeof cached === "string" ? JSON.parse(cached) : cached
+        console.log("Returning data from Redis cache")
         return NextResponse.json(parsed)
       } catch (e) {
-        console.warn('Failed to parse cached data, fetching from GAS', e)
+        console.warn("Failed to parse cached data, clearing cache", e)
         await redis.del(cacheKey)
       }
     }
 
-    let apiUrl = SCRIPT_URL
-    if (date) apiUrl += `?storyDate=${encodeURIComponent(date)}`
-    else apiUrl += `?month=${encodeURIComponent(month!)}&year=${encodeURIComponent(year!)}`
+    // --- Setup Google Sheets API ---
+    const oAuth2Client = new google.auth.OAuth2()
+    oAuth2Client.setCredentials({ access_token: accessToken })
+    const sheets = google.sheets({ version: "v4", auth: oAuth2Client })
 
-    const res = await fetch(apiUrl)
-    const contentType = res.headers.get('content-type') || ''
-    if (!contentType.includes('application/json')) {
-      const text = await res.text()
-      console.error('Non-JSON response from Google Script:', text)
-      return NextResponse.json({ error: 'Response is not JSON', details: text }, { status: 500 })
+    const sheetName = "Journal - Homework for Life"
+    const readResponse = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: `${sheetName}!A:B`,
+    })
+
+    const rows = readResponse.data.values || []
+    let result: any = null
+
+    if (storyDate) {
+      // Cari persis satu tanggal
+      const row = rows.find(r => r[0] === storyDate)
+      result = row ? { date: row[0], content: row[1] } : null
+    } else if (month && year) {
+      // Ambil semua di bulan & tahun tertentu
+      const stories = rows
+        .filter((r, idx) => idx > 0 && r[0]) // skip header
+        .map(r => ({ date: r[0], content: r[1] }))
+        .filter(story => {
+          const d = new Date(story.date)
+          return (
+            d.getMonth() + 1 === Number(month) &&
+            d.getFullYear() === Number(year)
+          )
+        })
+      result = stories
     }
 
-    const data = await res.json()
-
+    // TTL untuk Redis
     let ttlSeconds = 600
-    if (date) {
+    if (storyDate) {
       const now = new Date()
       const endOfDay = new Date(now)
       endOfDay.setHours(23, 59, 59, 999)
       ttlSeconds = Math.ceil((endOfDay.getTime() - now.getTime()) / 1000)
     }
 
-    if (data && typeof data === 'object') {
-      await redis.set(cacheKey, JSON.stringify(data), { ex: ttlSeconds })
-    }
+    await redis.set(cacheKey, JSON.stringify(result), { ex: ttlSeconds })
 
-    return NextResponse.json(data)
+    return NextResponse.json(result)
   } catch (error: any) {
-    console.error('Error in GET handler: ', error)
+    console.error("Error in GET handler: ", error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await auth()
+    if (!session?.accessToken) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
     const body = await request.json()
+    const { storyDate, content } = body
 
-    const res = await fetch(`${SCRIPT_URL}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    })
-
-    const contentType = res.headers.get('content-type') || ''
-    if (!contentType.includes('application/json')) {
-      const text = await res.text()
-      console.error('Non-JSON response from Google Script: ', text)
+    if (!storyDate || !content) {
       return NextResponse.json(
-        { error: 'Response is not JSON', details: text },
+        { error: "Missing required fields" },
+        { status: 400 }
+      )
+    }
+
+    const oAuth2Client = new google.auth.OAuth2()
+    oAuth2Client.setCredentials({ access_token: session.accessToken })
+    const sheets = google.sheets({ version: "v4", auth: oAuth2Client })
+
+    const finalSpreadsheetId = session.user.spreadsheetId
+    if (!finalSpreadsheetId) {
+      return NextResponse.json(
+        { error: "Spreadsheet not initialized for user" },
         { status: 500 }
       )
     }
 
-    const data = await res.json();
-    if (body.storyDate) {
-      const cacheKey = `story:${body.storyDate}`
-      await redis.set(cacheKey, JSON.stringify({ exists: true, story: body.content }), {
-        // TTL sampai akhir hari
-        ex: Math.ceil((new Date(body.storyDate).setHours(23, 59, 59, 999) - new Date().getTime()) / 1000)
+    const sheetName = "Journal - Homework for Life"
+    const meta = await sheets.spreadsheets.get({ spreadsheetId: finalSpreadsheetId })
+
+    if (!meta.data.sheets?.some(s => s.properties?.title === sheetName)) {
+      await sheets.spreadsheets.batchUpdate({
+        spreadsheetId: finalSpreadsheetId,
+        requestBody: {
+          requests: [{ addSheet: { properties: { title: sheetName } } }],
+        },
       })
     }
-    return NextResponse.json(data);
 
+    const readResponse = await sheets.spreadsheets.values.get({
+      spreadsheetId: finalSpreadsheetId,
+      range: `${sheetName}!A:B`,
+    })
+
+    const rows = readResponse.data.values || []
+    let rowIndex = -1
+
+    rows.forEach((row, idx) => {
+      if (idx === 0) return
+      if (row[0] === storyDate) rowIndex = idx
+    })
+
+    if (rowIndex > -1) {
+      await sheets.spreadsheets.values.update({
+        spreadsheetId: finalSpreadsheetId,
+        range: `${sheetName}!A${rowIndex + 1}:B${rowIndex + 1}`,
+        valueInputOption: "RAW",
+        requestBody: { values: [[storyDate, content]] },
+      })
+    } else {
+      await sheets.spreadsheets.values.append({
+        spreadsheetId: finalSpreadsheetId,
+        range: `${sheetName}!A:B`,
+        valueInputOption: "RAW",
+        requestBody: { values: [[storyDate, content]] },
+      })
+    }
+
+    const meta2 = await sheets.spreadsheets.get({ spreadsheetId: finalSpreadsheetId })
+    const sheet = meta2.data.sheets?.find(s => s.properties?.title === sheetName)
+    const sheetId = sheet?.properties?.sheetId
+
+    if (sheetId) {
+      await sheets.spreadsheets.batchUpdate({
+        spreadsheetId: finalSpreadsheetId,
+        requestBody: {
+          requests: [
+            {
+              autoResizeDimensions: {
+                dimensions: { sheetId, dimension: "COLUMNS", startIndex: 0, endIndex: 2 },
+              },
+            },
+            {
+              repeatCell: {
+                range: { sheetId, startRowIndex: 0, endRowIndex: 1 },
+                cell: { userEnteredFormat: { textFormat: { bold: true } } },
+                fields: "userEnteredFormat.textFormat.bold",
+              },
+            },
+          ],
+        },
+      })
+    }
+
+    return NextResponse.json({
+      success: true,
+      spreadsheetId: finalSpreadsheetId,
+      updated: rowIndex > -1,
+    })
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("Error saving story:", error)
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }

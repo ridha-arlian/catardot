@@ -8,7 +8,6 @@ import { useSession } from "next-auth/react"
 import { BookOpen, Sparkles } from "lucide-react"
 import { toaster } from "@/components/ui/toaster"
 import { getRandomPrompts } from "@/app/utils/prompt"
-import NotAuthorizedPage from "@/app/not-authorized/page"
 import { History } from "@/app/components/journal/history"
 import { TimeWidget } from "@/app/components/journal/timeWidget"
 import { StatusWidget } from "@/app/components/journal/statusWidget"
@@ -31,23 +30,83 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
   const [existingJournal, setExistingJournal] = useState<any>(null)
   const [isCheckingExisting, setIsCheckingExisting] = useState(false)
 
-  const { data: session, status } = useSession()
+  const { data: session } = useSession()
   const hasWrittenToday = Boolean(existingJournal)
   const refreshPrompts = () => setPrompts(getRandomPrompts())
 
-  const saveStoryToAPI = async (content: string, date: string) => {
+  const saveStoryToAPI = async (content: string, date: string, method: 'POST' | 'PUT' = 'POST') => {
+    if (!session) throw new Error("User not authenticated")
+
+    const spreadsheetId = session?.user?.spreadsheetId
+    const accessToken = session?.accessToken
+    if (!spreadsheetId || !accessToken) throw new Error("Spreadsheet ID atau access token tidak tersedia")
+
+    let response
+    if (method === 'POST') {
+      response = await fetch("/api/story", {
+        method: 'POST',
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content, storyDate: date, spreadsheetId, access_token: accessToken }),
+      })
+    } else {
+      response = await fetch("/api/story", {
+        method: 'PUT',
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content, storyDate: date, spreadsheetId, access_token: accessToken }),
+      })
+    }
+
+    const data = await response.json()
+    if (!response.ok) throw new Error(data.error || "Gagal menyimpan catatan")
+    return data
+  }
+
+  const checkExistingJournal = async (date: string) => {
+    if (!session) throw new Error("User not authenticated")
+    if (!date) return { exists: false }
+
+    const spreadsheetId = session?.user?.spreadsheetId
+    const accessToken = session?.accessToken
+  
+    if (!spreadsheetId || !accessToken) {
+      console.log("Waiting for spreadsheet to be ready...")
+      return { exists: false }
+    }
+
+    setIsCheckingExisting(true)
+    setIsLoading(true)
+
     try {
-      const response = await fetch("/api/story", {
+      const response = await fetch("/api/story/check", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content, storyDate: date }),
+        body: JSON.stringify({ storyDate: date, spreadsheetId }),
       })
+    
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+    
       const data = await response.json()
-      if (!response.ok) throw new Error(data.error || "Gagal menyimpan catatan")
-      return data
+
+      if (data.exists) {
+        setExistingJournal({ storyDate: date })
+        setTodayEntry(data.story || "")
+        setStoryContent(data.story || "")
+      } else {
+        setExistingJournal(null)
+        setTodayEntry("")
+        setStoryContent("")
+      }
+      setLastCheckedDate(date)
     } catch (error) {
-      console.error("Error saving story:", error)
-      throw error
+      console.error("Error checking existing journal:", error)
+      setExistingJournal(null)
+      setTodayEntry("")
+      setStoryContent("")
+    } finally {
+      setIsCheckingExisting(false)
+      setIsLoading(false)
     }
   }
 
@@ -88,8 +147,14 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
       return
     }
 
-    const savePromise = saveStoryToAPI(storyContent, selectedDate)
-    createToasterPromise(savePromise, "Catatan Berhasil Disimpan!", "Menyimpan...")
+    const method = existingJournal ? 'PUT' : 'POST'
+
+    const savePromise = saveStoryToAPI(storyContent, selectedDate, method)
+    createToasterPromise(
+      savePromise,
+      method === 'PUT' ? "Catatan Berhasil Diperbarui!" : "Catatan Berhasil Disimpan!",
+      "Menyimpan..."
+    )
 
     try {
       const result = await savePromise
@@ -126,35 +191,6 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
     }
   }
 
-  const checkExistingJournal = async () => {
-    if (!selectedDate) return
-
-    setIsCheckingExisting(true)
-    setIsLoading(true)
-    try {
-      const response = await fetch(`/api/story?storyDate=${selectedDate}`)
-      const data = await response.json()
-      if (data.exists) {
-        setExistingJournal({ storyDate: selectedDate })
-        setTodayEntry(data.story)
-        setStoryContent(data.story)
-      } else {
-        setExistingJournal(null)
-        setTodayEntry('')
-        setStoryContent('')
-      }
-      setLastCheckedDate(selectedDate)
-    } catch (error) {
-      console.error("Error checking existing journal:", error)
-      setExistingJournal(null)
-      setTodayEntry("")
-      setStoryContent("")
-    } finally {
-      setIsCheckingExisting(false)
-      setIsLoading(false)
-    }
-  }
-
   // const handleContinueDraft = () => {
   //   toaster.create({
   //     title: "Fitur Segera Hadir",
@@ -174,15 +210,11 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
   }, [])
 
   useEffect(() => {
-    if (selectedDate) {
-      checkExistingJournal()
+    if (selectedDate && session?.user?.spreadsheetId && session?.accessToken) {
+      checkExistingJournal(selectedDate)
     }
-  }, [selectedDate])
-
-  if (status === "unauthenticated" || !session) {
-    return <NotAuthorizedPage />
-  }
-
+  }, [selectedDate, session?.user?.spreadsheetId, session?.accessToken])
+  
   return (
     <Box mt="60px" bg="gray.50">
       {/* Header */}

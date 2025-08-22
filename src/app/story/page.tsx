@@ -2,11 +2,19 @@
 "use client"
 
 import { Box} from "@chakra-ui/react"
+import { useSession } from "next-auth/react"
 import { Story } from "@/app/components/journal/story"
 import { Navbar } from "@/app/components/journal/navbar"
 import { Footer } from "@/app/components/journal/footer"
+import NotAuthorizedPage from "@/app/not-authorized/page"
 
 export default function StoryPage() {
+  const { data: session, status } = useSession()
+  
+  if (status === "loading") return null
+  if (status === "unauthenticated" || !session) {
+    return <NotAuthorizedPage />
+  }
 
   return (
     <>

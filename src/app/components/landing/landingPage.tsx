@@ -1,14 +1,12 @@
 "use client"
 
-import { useSession, signIn } from "next-auth/react"
+import { signIn } from "next-auth/react"
 import { ColorModeButton } from "@/components/ui/color-mode"
 import { BookOpen, CalendarDays, Sparkles, Heart, Leaf } from "lucide-react"
 import { SheetsIcons, NotionIcons, GoogleIcons } from "@/components/icons/iconsDarkMode"
 import { Box, Container, VStack, Text, Button, Card, Heading, Icon, SimpleGrid, GridItem } from "@chakra-ui/react"
 
 export const LandingPage = () => {
-  const { data: session } = useSession()
-  console.log(session)
   return (
     <>
       <Box minH="100vh" bg="bg.canvas" position="relative" overflow="hidden">
