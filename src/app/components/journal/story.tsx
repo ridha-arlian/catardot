@@ -32,19 +32,17 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
   const hasWrittenToday = Boolean(existingJournal)
   const refreshPrompts = () => setPrompts(getRandomPrompts())
 
-  const saveStoryToAPI = async (content: string, date: string, method: 'POST' | 'PUT' = 'POST') => {
+  const saveStoryToAPI = async (content: string, date: string, method: "POST" | "PUT" = "POST") => {
     if (!session) throw new Error("User not authenticated")
 
-    // Gunakan endpoint yang sudah diperbaiki dengan cache invalidation
     const response = await fetch("/api/story", {
-      method: "POST", // POST aja, di server logic nya handle create/update
+      method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ 
-        content, 
-        storyDate: date 
-        // Tidak perlu kirim spreadsheetId & accessToken, sudah di session
+        content,
+        storyDate: date
       }),
-      credentials: 'include'
+      credentials: "include"
     })
 
     const data = await response.json()
@@ -60,18 +58,10 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
     setIsLoading(true)
 
     try {
-      // Gunakan GET endpoint yang sudah diperbaiki
-      const response = await fetch(`/api/story?storyDate=${date}`, {
-        credentials: 'include'
-      })
-    
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-    
+      const response = await fetch(`/api/story?storyDate=${date}`, { credentials: "include" })
+      if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`) }
       const data = await response.json()
 
-      // data bisa null (tidak ada) atau {date, content}
       if (data && data.content) {
         setExistingJournal({ storyDate: date })
         setTodayEntry(data.content)
@@ -147,27 +137,22 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
     try {
       const result = await savePromise
       
-      // Update local state
       setExistingJournal({ storyDate: selectedDate })
       setTodayEntry(storyContent)
       setLastCheckedDate("")
       
-      // Clear form untuk entry baru
       if (!isUpdate) {
         setStoryContent("")
         refreshPrompts()
       }
       
-      // Callback ke parent component
       onJournalSaved?.(result)
-      
-      // 🔥 PENTING: Trigger global refresh untuk semua komponen
       triggerGlobalRefresh()
       
-      console.log(`Journal ${isUpdate ? 'updated' : 'saved'} successfully:`, result)
+      console.log(`Journal ${isUpdate ? 'updated' : 'saved'} successfully: `, result)
       
     } catch (error) {
-      console.error("Error saving story:", error)
+      console.error("Error saving story: ", error)
     }
   }
 
@@ -186,13 +171,10 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
 
     try {
       const result = await saveDraftPromise
-      console.log("Draft saved:", result)
+      console.log("Draft saved: ", result)
       
-      // Update state setelah save draft
       setExistingJournal({ storyDate: selectedDate })
       setTodayEntry(storyContent)
-      
-      // Trigger refresh
       triggerGlobalRefresh()
       
     } catch (error) {
@@ -260,14 +242,10 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
       }
     }
 
-    if (session?.user) {
-      setupSpreadsheet()
-    }
+    if (session?.user) { setupSpreadsheet() }
   }, [session, isSettingUpSpreadsheet])
 
-  if (!session?.user) {
-    return <Skeleton height="200px" />
-  }
+  // if (!session?.user) return <Skeleton height="200px" />
 
   if (isSettingUpSpreadsheet) {
     return (
@@ -283,7 +261,7 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
   }
   
   return (
-    <Box mt="60px" bg="gray.50">
+    <Box mt="60px" bg="bg.canvas">
       {/* Header */}
       <Box as="header">
         <Box maxW="4xl" mx="auto" px={6} py={6}>
@@ -305,7 +283,7 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
       {/* Main Content */}
       <Box as="main" maxW="4xl" mx="auto" px={6} py={6}>
         <VStack gap={8} align="stretch" mb={12}>
-          <Box bg="white" borderWidth={1} borderColor="gray.200" shadow="sm" rounded="md" p={8}>
+          <Box bg="bg.canvas" borderWidth={1} borderColor="gray.200" shadow="sm" rounded="md" p={8}>
             {isLoading ? (
               <VStack gap={6} align="stretch">
                 <Skeleton height="40px" width="120px" />

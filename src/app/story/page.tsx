@@ -1,4 +1,3 @@
-// /* eslint-disable @typescript-eslint/no-unused-vars */
 import { auth } from "../../../auth"
 import { Box } from "@chakra-ui/react"
 import { redirect } from "next/navigation"
@@ -15,7 +14,7 @@ export default async function StoryPage() {
 
   return (
     <>
-      <Box minH="50vh" bg={{ base: "whiteAlpha.400", _dark: "blackAlpha.400" }} py={2} overflow="hidden">
+      <Box minH="50vh" bg="bg.canvas" py={2} overflow="hidden">
         
         <Navbar/>
 

@@ -133,4 +133,28 @@ export const textStyles = defineTextStyles({
       textTransform: "none",
     },
   },
+  headingNav:{
+    description: "For Heading in Navbar",
+    value: {
+      fontFamily: "var(--font-playfair-display)",
+      fontWeight: "600",
+      fontSize: { base: '14px', sm: '16px', md: '16px', lg: '16px', xl: '40px' },
+      lineHeight: "24px",
+      letterSpacing: "0px",
+      textDecoration: "none",
+      textTransform: "none",
+    },
+  },
+  subheadingNav:{
+    description: "For Sub Heading in Navbar",
+    value: {
+      fontFamily: "var(--font-quicksand)",
+      fontWeight: "600",
+      fontSize: { base: '14px', sm: '16px', md: '16px', lg: '16px', xl: '16px' },
+      lineHeight: "20px",
+      letterSpacing: "0px",
+      textDecoration: "none",
+      textTransform: "none",
+    },
+  },
 })

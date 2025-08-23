@@ -1,21 +1,20 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
 import { useDebounce } from "use-debounce"
-import { useState, useEffect, useCallback } from "react"
 import { monthNames } from "@/app/utils/month"
+import { useState, useEffect, useCallback } from "react"
 import { HistoryModal } from "@/app/components/modals/historyModal"
 import { Box, VStack, HStack, Text, Portal, Select, createListCollection, Button } from "@chakra-ui/react"
 
 interface JournalEntry {
   storyDate: string
   content: string
-  date?: string // Support both formats
+  date?: string
 }
 
 interface HistoryProps {
-  refreshTrigger?: number // Trigger refresh dari parent
+  refreshTrigger?: number
 }
 
 const currentYear = new Date().getFullYear()
@@ -39,45 +38,18 @@ const yearCollection = createListCollection({
 
 export const History = ({ refreshTrigger }: HistoryProps) => {
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [entries, setEntries] = useState<JournalEntry[]>([])
   const [cache, setCache] = useState<Record<string, JournalEntry[]>>({})
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString())
   const [selectedMonth, setSelectedMonth] = useState((new Date().getMonth() + 1 ).toString())
-  const [error, setError] = useState<string | null>(null)
-  
+
   const [debouncedYear] = useDebounce(selectedYear, 300)
   const [debouncedMonth] = useDebounce(selectedMonth, 300)
 
-  // useEffect(() => {
-  //   const key = `${debouncedYear}-${debouncedMonth}`
-
-  //   if (cache[key]) {
-  //     setEntries(cache[key])
-  //     return
-  //   }
-
-  //   const fetchEntries = async () => {
-  //     setLoading(true)
-  //     try {
-  //       const res = await fetch(`/api/story?month=${debouncedMonth}&year=${debouncedYear}`)
-  //       const data = await res.json()
-  //       const entriesArray = Array.isArray(data) ? data : []
-  //       setEntries(entriesArray)
-  //       setCache(prev => ({ ...prev, [key]: entriesArray }))
-  //     } catch (err) {
-  //       console.error("Error fetching monthly entries:", err)
-  //       setEntries([])
-  //     } finally {
-  //       setLoading(false)
-  //     }
-  //   }
-
-  //   fetchEntries()
-  // }, [debouncedMonth, debouncedYear, cache])
   const fetchEntries = useCallback(async (forceRefresh = false) => {
     const key = `${debouncedYear}-${debouncedMonth}`
 
-    // Jika tidak force refresh dan ada cache, gunakan cache
     if (!forceRefresh && cache[key]) {
       setEntries(cache[key])
       return
@@ -92,22 +64,16 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
         year: debouncedYear
       })
       
-      // Tambah parameter refresh jika force refresh
-      if (forceRefresh) {
-        params.append('refresh', 'true')
-      }
+      if (forceRefresh) params.append('refresh', 'true')
 
       const res = await fetch(`/api/story?${params}`, {
-        credentials: 'include'
+        credentials: "include"
       })
       
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`)
-      }
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`)
       
       const data = await res.json()
       
-      // Normalize data format
       const entriesArray = Array.isArray(data) ? data.map((entry: any) => ({
         storyDate: entry.storyDate || entry.date,
         content: entry.content,
@@ -115,12 +81,8 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
       })) : []
       
       entriesArray.sort((a, b) => new Date(b.storyDate).getTime() - new Date(a.storyDate).getTime())
-      
       setEntries(entriesArray)
-      
-      // Update cache
       setCache(prev => ({ ...prev, [key]: entriesArray }))
-      
       console.log(`Fetched ${entriesArray.length} entries for ${debouncedMonth}/${debouncedYear}`)
       
     } catch (err) {
@@ -139,7 +101,7 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
   useEffect(() => {
     if (refreshTrigger && refreshTrigger > 0) {
       console.log("Refresh trigger activated, force refreshing history")
-      fetchEntries(true) // Force refresh
+      fetchEntries(true)
     }
   }, [refreshTrigger, fetchEntries])
 
@@ -151,27 +113,9 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
   const handleEntryUpdate = (updatedEntry: Partial<JournalEntry>) => {
     const targetDate = updatedEntry.storyDate || updatedEntry.date
     if (!targetDate) return
-
-    // Update local state immediately untuk UX yang responsive
-    setEntries((prev) => 
-      prev.map((e) => 
-        (e.storyDate === targetDate || e.date === targetDate) 
-          ? { ...e, ...updatedEntry } 
-          : e 
-      )
-    )
-
-    // Update cache juga
+    setEntries((prev) => prev.map((e) => (e.storyDate === targetDate || e.date === targetDate) ? { ...e, ...updatedEntry } : e))
     const key = `${debouncedYear}-${debouncedMonth}`
-    setCache(prev => ({ 
-      ...prev, 
-      [key]: prev[key]?.map(e => 
-        (e.storyDate === targetDate || e.date === targetDate) 
-          ? { ...e, ...updatedEntry } 
-          : e
-      ) || []
-    }))
-
+    setCache(prev => ({ ...prev, [key]: prev[key]?.map(e => (e.storyDate === targetDate || e.date === targetDate) ? { ...e, ...updatedEntry } : e) || [] }))
     console.log(`Local state updated for ${targetDate}`)
   }
 
@@ -189,94 +133,91 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
     <>
       <VStack gap={6} align="stretch">
         <HStack gap={4} justify="space-between">
-        <HStack gap={4}>
-          {/* Select Bulan */}
-          <Select.Root collection={monthCollection} size="sm" width="150px" value={[selectedMonth]} onValueChange={(val) => {
+          <HStack gap={4}>
+            {/* Select Bulan */}
+            <Select.Root collection={monthCollection} size="sm" width="150px" value={[selectedMonth]} onValueChange={(val) => {
               const newMonth = Array.isArray(val.value) ? val.value[0] : val.value
               setSelectedMonth(newMonth)
-              invalidateCurrentCache() // Clear cache saat ganti bulan
+              invalidateCurrentCache()
             }}>
-            <Select.HiddenSelect />
-            <Select.Label>Select Month</Select.Label>
-            <Select.Control>
-              <Select.Trigger>
-                <Select.ValueText placeholder="Select Month" />
-              </Select.Trigger>
-              <Select.IndicatorGroup>
-                <Select.Indicator />
-              </Select.IndicatorGroup>
-            </Select.Control>
-            <Portal>
-              <Select.Positioner>
-                <Select.Content>
-                  <Select.ItemGroup key="Months">
-                    {monthCollection.items.map((item) => (
-                      <Select.Item item={item} key={item.value}>
-                        {item.label}
-                        <Select.ItemIndicator />
-                      </Select.Item>
-                    ))}
-                  </Select.ItemGroup>
-                </Select.Content>
-              </Select.Positioner>
-            </Portal>
-          </Select.Root>
+              <Select.HiddenSelect />
+              <Select.Label>
+                Select Month
+              </Select.Label>
+              <Select.Control>
+                <Select.Trigger>
+                  <Select.ValueText placeholder="Select Month" />
+                </Select.Trigger>
+                <Select.IndicatorGroup>
+                  <Select.Indicator />
+                </Select.IndicatorGroup>
+              </Select.Control>
+              <Portal>
+                <Select.Positioner>
+                  <Select.Content>
+                    <Select.ItemGroup key="Months">
+                      {monthCollection.items.map((item) => (
+                        <Select.Item item={item} key={item.value}>
+                          {item.label}
+                          <Select.ItemIndicator />
+                        </Select.Item>
+                      ))}
+                    </Select.ItemGroup>
+                  </Select.Content>
+                </Select.Positioner>
+              </Portal>
+            </Select.Root>
 
-          {/* Select Tahun */}
-          <Select.Root collection={yearCollection} size="sm" width="120px" value={[selectedYear]} onValueChange={(val) => {
+            {/* Select Tahun */}
+            <Select.Root collection={yearCollection} size="sm" width="120px" value={[selectedYear]} onValueChange={(val) => {
               const newYear = Array.isArray(val.value) ? val.value[0] : val.value
               setSelectedYear(newYear)
-              invalidateCurrentCache() // Clear cache saat ganti tahun
+              invalidateCurrentCache()
             }}>
-            <Select.HiddenSelect />
-            <Select.Label>
-              Select Year
-            </Select.Label>
-            <Select.Control>
-              <Select.Trigger>
-                <Select.ValueText placeholder="Select Year" />
-              </Select.Trigger>
-              <Select.IndicatorGroup>
-                <Select.Indicator />
-              </Select.IndicatorGroup>
-            </Select.Control>
-            <Portal>
-              <Select.Positioner>
-                <Select.Content>
-                  <Select.ItemGroup key="Years">
-                    {yearCollection.items.map((item) => (
-                      <Select.Item item={item} key={item.value}>
-                        {item.label}
-                        <Select.ItemIndicator />
-                      </Select.Item>
-                    ))}
-                  </Select.ItemGroup>
-                </Select.Content>
-              </Select.Positioner>
-            </Portal>
-          </Select.Root>
-        </HStack>
-        <Button 
-          size="sm" 
-          variant="outline" 
-          onClick={handleManualRefresh}
-          disabled={loading}
-        >
-          {loading ? "Loading..." : "Refresh"}
-        </Button>
-      </HStack>
-
-      {/* Error State */}
-      {error && (
-        <Box p={4} bg="red.50" border="1px solid" borderColor="red.200" borderRadius="md">
-          <Text color="red.600" fontSize="sm">
-            Error: {error}
-          </Text>
-          <Button size="sm" mt={2} onClick={handleManualRefresh}>
-            Coba Lagi
+              <Select.HiddenSelect />
+              <Select.Label>
+                Select Year
+              </Select.Label>
+              <Select.Control>
+                <Select.Trigger>
+                  <Select.ValueText placeholder="Select Year" />
+                </Select.Trigger>
+                <Select.IndicatorGroup>
+                  <Select.Indicator />
+                </Select.IndicatorGroup>
+              </Select.Control>
+              <Portal>
+                <Select.Positioner>
+                  <Select.Content>
+                    <Select.ItemGroup key="Years">
+                      {yearCollection.items.map((item) => (
+                        <Select.Item item={item} key={item.value}>
+                          {item.label}
+                          <Select.ItemIndicator />
+                        </Select.Item>
+                      ))}
+                    </Select.ItemGroup>
+                  </Select.Content>
+                </Select.Positioner>
+              </Portal>
+            </Select.Root>
+          </HStack>
+          <Button size="sm" variant="outline" onClick={handleManualRefresh} disabled={loading}>
+            {loading ? "Loading..." : "Refresh"}
           </Button>
-        </Box>
-      )}
+        </HStack>
+
+        {/* Error State */}
+        {error && (
+          <Box p={4} bg="red.50" border="1px solid" borderColor="red.200" borderRadius="md">
+            <Text color="red.600" fontSize="sm">
+              Error: {error}
+            </Text>
+            <Button size="sm" mt={2} onClick={handleManualRefresh}>
+              Coba Lagi
+            </Button>
+          </Box>
+        )}
 
         {/* History List */}
         {loading ? (
@@ -286,71 +227,26 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
             </Text>
           </Box>
         ) : entries.length > 0 ? (
-          // entries.map((entry) => {
-          //   return (
-          //   <Box key={entry.storyDate} shadow="sm" p={4} _hover={{ shadow: "md" }}>
-          //     <VStack align="start" gap={2}>
-          //       <Text fontWeight="bold">
-          //         {new Date(entry.storyDate).toLocaleDateString("id-ID", {
-          //           weekday: 'long',
-          //           year: 'numeric',
-          //           month: 'long',
-          //           day: 'numeric'
-          //         })}
-          //       </Text>
-          //       <Text fontSize="sm">
-          //         {entry.content}
-          //       </Text>
-          //       <HistoryModal entry={entry} onSave={ 
-          //         (updatedEntry) => { 
-          //           setEntries((prev) => 
-          //             prev.map( (e) => 
-          //               e.storyDate === entry.storyDate ? { ...e, ...updatedEntry } : e 
-          //             )
-          //           )
-          //           const key = `${debouncedYear}-${debouncedMonth}`
-          //           setCache(prev => ({ ...prev, [key]: prev[key].map(e => e.storyDate === entry.storyDate ? { ...e, ...updatedEntry } : e) }))
-          //         }}
-          //       />
-          //     </VStack>
-          //   </Box>
-          // )
-        entries.map((entry) => {
-          const entryDate = entry.storyDate || entry.date
-          if (!entryDate) {
-            console.warn("Entry without date found:", entry)
-            return null
-          }
-          return (
-            <Box 
-              key={entryDate} 
-              shadow="sm" 
-              p={4} 
-              _hover={{ shadow: "md" }} 
-              borderRadius="md" 
-              border="1px solid" 
-              borderColor="gray.200"
-            >
-              <VStack align="start" gap={2}>
-                <Text fontWeight="bold" fontSize="md">
-                  {new Date(entryDate).toLocaleDateString("id-ID", {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
-                </Text>
-                <Text fontSize="sm" color="gray.700">
-                  {entry.content}
-                </Text>
-                <HistoryModal 
-                  entry={entry} 
-                  onSave={handleEntryUpdate}
-                />
-              </VStack>
-            </Box>
-          )
-        })
+          entries.map((entry) => {
+            const entryDate = entry.storyDate || entry.date
+            if (!entryDate) {
+              console.warn("Entry without date found:", entry)
+              return null
+            }
+            return (
+              <Box key={entryDate} shadow="sm" p={4} _hover={{ shadow: "md" }} borderRadius="md" border="1px solid" borderColor="gray.200">
+                <VStack align="start" gap={2}>
+                  <Text fontWeight="bold" fontSize="md">
+                    {new Date(entryDate).toLocaleDateString("id-ID", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+                  </Text>
+                  <Text fontSize="sm" color="gray.700">
+                    {entry.content}
+                  </Text>
+                  <HistoryModal entry={entry} onSave={handleEntryUpdate}/>
+                </VStack>
+              </Box>
+            )
+          })
         ) : (
           <Box p={6} textAlign="center">
             <Text>
@@ -359,12 +255,12 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
           </Box>
         )}
         {entries.length > 0 && (
-        <Box p={3} bg="blue.50" borderRadius="md">
-          <Text fontSize="sm" color="blue.700">
-            📊 Total {entries.length} catatan di {monthNames[parseInt(selectedMonth) - 1]} {selectedYear}
-          </Text>
-        </Box>
-      )}
+          <Box p={3} bg="blue.50" borderRadius="md">
+            <Text fontSize="sm" color="blue.700">
+              Total {entries.length} catatan di {monthNames[parseInt(selectedMonth) - 1]} {selectedYear}
+            </Text>
+          </Box>
+        )}
       </VStack>
     </>
   )

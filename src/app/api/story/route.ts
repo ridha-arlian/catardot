@@ -30,39 +30,20 @@ export async function GET(request: NextRequest) {
 
     const spreadsheetId = session.user.spreadsheetId
     const accessToken = session.accessToken
-
     const cacheKey = storyDate ? `story:${storyDate}` : `stories:${year}-${month}`
-    // const cached = await redis.get(cacheKey)
     const today = new Date().toISOString().split('T')[0]
 
     let cached = null
 
-    if (!forceRefresh) {
-      cached = await redis.get(cacheKey)
-    }
-
-    // if (cached) {
-    // if (cached && !forceRefresh) {
-    //   try {
-    //     const cachedData = typeof cached === "string" ? JSON.parse(cached) : cached
-
-    //     const parsed = typeof cached === "string" ? JSON.parse(cached) : cached
-    //     console.log("Returning data from Redis cache")
-    //     return NextResponse.json(parsed)
-    //   } catch (e) {
-    //     console.warn("Failed to parse cached data, clearing cache", e)
-    //     await redis.del(cacheKey)
-    //   }
-    // }
+    if (!forceRefresh) cached = await redis.get(cacheKey)
 
     if (cached && !forceRefresh) {
       try {
         const cachedData = typeof cached === "string" ? JSON.parse(cached) : cached
         
-        // Jika request untuk hari ini, cek apakah cache masih fresh
         if (storyDate === today) {
           const cacheAge = Date.now() - (cachedData.cachedAt || 0)
-          const maxAge = 2 * 60 * 1000 // 2 menit untuk data hari ini
+          const maxAge = 2 * 60 * 1000 // 2 minute
           
           if (cacheAge > maxAge) {
             console.log("Cache expired for today's data, fetching fresh data")
@@ -72,7 +53,6 @@ export async function GET(request: NextRequest) {
             return NextResponse.json(cachedData.data)
           }
         } else {
-          // Untuk data historis, langsung return dari cache
           console.log("Returning historical data from Redis cache")
           return NextResponse.json(cachedData.data || cachedData)
         }
@@ -108,19 +88,10 @@ export async function GET(request: NextRequest) {
 
     let ttlSeconds = 600
 
-    // if (storyDate) {
-    //   const now = new Date()
-    //   const endOfDay = new Date(now)
-    //   endOfDay.setHours(23, 59, 59, 999)
-    //   ttlSeconds = Math.ceil((endOfDay.getTime() - now.getTime()) / 1000)
-    // }
-
     if (storyDate) {
       if (storyDate === today) {
-        // Data hari ini: cache 2 menit saja
         ttlSeconds = 120
       } else {
-        // Data historis: cache sampai akhir hari
         const now = new Date()
         const endOfDay = new Date(now)
         endOfDay.setHours(23, 59, 59, 999)
@@ -128,13 +99,8 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const dataToCache = storyDate === today 
-      ? { data: result, cachedAt: Date.now() }
-      : result
-
-    // await redis.set(cacheKey, JSON.stringify(result), { ex: ttlSeconds })
+    const dataToCache = storyDate === today ? { data: result, cachedAt: Date.now() } : result
     await redis.set(cacheKey, JSON.stringify(dataToCache), { ex: ttlSeconds })
-
     console.log(`Data cached with TTL: ${ttlSeconds} seconds`)
 
     return NextResponse.json(result)
@@ -194,7 +160,6 @@ export async function POST(request: NextRequest) {
 
     rows.forEach((row, idx) => {
       if (idx === 0) return
-      // if (row[0] === storyDate) rowIndex = idx
       if (row[0] === storyDate) {
         rowIndex = idx
         isUpdate = true

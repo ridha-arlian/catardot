@@ -5,13 +5,8 @@ export async function invalidateJournalCache(date: string) {
     const d = new Date(date)
     const month = d.getMonth() + 1
     const year = d.getFullYear()
+    const cacheKeys = [`story:${date}`, `stories:${year}-${month}`]
     
-    const cacheKeys = [
-      `story:${date}`,
-      `stories:${year}-${month}`
-    ]
-    
-    // Hapus juga cache bulan sebelumnya jika di awal bulan
     if (d.getDate() <= 3) {
       const prevMonth = month === 1 ? 12 : month - 1
       const prevYear = month === 1 ? year - 1 : year

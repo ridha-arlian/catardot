@@ -24,11 +24,11 @@ export const Navbar = () => {
     <>
       <MotionFlex as="nav" position="fixed" top={0} left={0} right={0} zIndex={50} justify="space-between" align="center" px={{ base: 4, md: 8 }} py={ scrolled ? 3 : 5 } bg={ scrolled ? { base: "whites.bgs", _dark: "blackAlpha.800" } : "transparent" } backdropFilter={ scrolled ? "blur(12px)" : "none" } initial={{ y: -100 }} animate={{ y: 0 }} transitionDuration="0.5s">
     
-        <VStack align="start" gap={0}>
-          <Heading size="md" fontFamily="serif">
-            catardot
+        <VStack align="start" gap={4}>
+          <Heading textStyle="headingNav">
+            Catardot.
           </Heading>
-          <Text fontSize="sm" color="gray.500">
+          <Text textStyle="subheadingNav" color="gray.500">
             Homework for Life by Matthew Dicks
           </Text>
         </VStack>

@@ -29,21 +29,16 @@ export const StatusWidget = ({ refreshTrigger }: StatusWidgetProps) => {
     setTodayDate(today)
 
     try {
-      const params = new URLSearchParams({
-        storyDate: today
-      })
+      const params = new URLSearchParams({ storyDate: today })
 
-      if (forceRefresh) {
-        params.append('refresh', 'true')
-      }
+      if (forceRefresh) params.append('refresh', 'true')      
 
       const response = await fetch(`/api/story?storyDate=${today}`,{
         credentials: "include"
       })
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
+      
       const data = await response.json()
 
       const hasJournal = data !== null && data.date && data.content
@@ -139,10 +134,10 @@ export const StatusWidget = ({ refreshTrigger }: StatusWidgetProps) => {
                 </Text>
               </HStack>
               <Text fontSize="xs">
-                {hasJournalToday ? "Kamu sudah menulis catatan harian hari ini. Terima kasih!" : "Kamu belum menulis catatan harian hari ini. Ayo buat catatan hari ini!" }
+                { hasJournalToday ? "Kamu sudah menulis catatan harian hari ini. Terima kasih!" : "Kamu belum menulis catatan harian hari ini. Ayo buat catatan hari ini!" }
               </Text>
               <Text fontSize="xs" color="gray.500">
-                Terakhir dicek: {new Date().toLocaleTimeString('id-ID')}
+                Terakhir dicek: {new Date().toLocaleTimeString('id-ID', { hour: "2-digit", minute: "2-digit" })}
               </Text>
             </VStack>
           </Box>

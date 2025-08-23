@@ -15,6 +15,10 @@ declare module "next-auth" {
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
   pages: { signIn: "/" },
+  session: {
+    strategy: "database", // Karena Anda pakai PrismaAdapter
+    maxAge: 30 * 24 * 60 * 60, // 30 hari
+  },
   providers: [
     Google({
       authorization: {
@@ -27,10 +31,26 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
     })
   ],
-  
+  cookies: {
+    sessionToken: {
+      name: process.env.NODE_ENV === 'production' 
+        ? `__Secure-next-auth.session-token` 
+        : `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 30 * 24 * 60 * 60 // 30 hari
+      }
+    }
+  },
   callbacks: {
     async signIn() { return true },
-    async jwt({ token, account }) {
+    async jwt({ token, account, user }) {
+      if (user) {
+        token.userId = user.id
+      }
       if (account) {
         token.accessToken = account.access_token
         token.refreshToken = account.refresh_token
@@ -48,10 +68,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
       return token
     },
-
     async session({ session, user }) {
-      console.log("Session callback - user:", user)
-      console.log("Session callback - session.user.email:", session.user.email)
+      console.log("Session callback - user: ", user)
+      console.log("Session callback - session.user.email: ", session.user.email)
       
       const account = await getGoogleAccountByEmail(session.user.email ?? "")
       
@@ -74,7 +93,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
 
       session.accessToken = accessToken ?? undefined
-    
       return session
     }
   },
