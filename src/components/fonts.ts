@@ -138,7 +138,7 @@ export const textStyles = defineTextStyles({
     value: {
       fontFamily: "var(--font-playfair-display)",
       fontWeight: "600",
-      fontSize: { base: "14px", sm: "16px", md: "16px", lg: "16px", xl: "40px" },
+      fontSize: { base: "22px", sm: "16px", md: "16px", lg: "16px", xl: "40px" },
       lineHeight: "24px",
       letterSpacing: "0px",
       textDecoration: "none",
@@ -223,6 +223,18 @@ export const textStyles = defineTextStyles({
       fontFamily: "var(--font-quicksand)",
       fontWeight: "600",
       fontSize: { base: "12px", sm: "12px", md: "16px", lg: "16px", xl: "14px" },
+      lineHeight: "20px",
+      letterSpacing: "0px",
+      textDecoration: "none",
+      textTransform: "none",
+    },
+  },
+  floatingButtonText:{
+    description: "For Text in FAB",
+    value: {
+      fontFamily: "var(--font-quicksand)",
+      fontWeight: "600",
+      fontSize: { base: "14px", sm: "12px", md: "16px", lg: "16px", xl: "14px" },
       lineHeight: "20px",
       letterSpacing: "0px",
       textDecoration: "none",

@@ -40,18 +40,18 @@ export const Navbar = () => {
 
   return (
     <>
-      <MotionFlex as="nav" position="fixed" top={0} left={0} right={0} zIndex={50} justify="space-between" align="center" px={{ base: 4, md: 8 }} py={ scrolled ? 4 : 6 } bg={ scrolled ? { base: "whites.bgs", _dark: "blur" } : "transparent" } backdropFilter={ scrolled ? "blur(12px)" : "none" } initial={{ y: -100 }} animate={{ y: 0 }} transitionDuration="0.5s">
+      <MotionFlex as="nav" position="fixed" top={0} left={0} right={0} zIndex={50} justify="space-between" align="center" px={{ base: 4, md: 8 }} py={{ base: scrolled ? 4 : 3, sm: scrolled ? 4 : 2, md: scrolled ? 4 : 6, lg: scrolled ? 4 : 6, xl: scrolled ? 4 : 6 }} bg={ scrolled ? { base: "whites.bgs", _dark: "blur" } : "transparent" } backdropFilter={ scrolled ? "blur(12px)" : "none" } initial={{ y: -100 }} animate={{ y: 0 }} transitionDuration="0.5s">
     
-        <VStack align="start" gap={4}>
+        <VStack align="start" gap={{ base: 2, sm: 2, md: 4, lg: 4, xl: 4 }}>
           <Heading textStyle="headingNav">
             Catardot.
           </Heading>
-          <Text textStyle="subheadingNav" color="gray.500">
+          <Text textStyle="subheadingNav" color="gray.500" display={{ base: "none", sm: "none", md: "flex", lg: "flex", xl: "flex" }}>
             Homework for Life by Matthew Dicks
           </Text>
         </VStack>
 
-        <HStack gap={4}>
+        <HStack gap={{ base: 1, sm: 2, md: 4, lg: 4, xl: 4 }}>
           <Button rel="noopener noreferrer" size="sm" boxSize={10} variant="ghost" bg="inherit" _hover={{ transform: "scale(1.2) rotate(5deg)", border:"1px solid", borderColor:"sage.500" }} asChild>
             <ColorModeButton />
           </Button>
@@ -61,7 +61,7 @@ export const Navbar = () => {
               {isLoading ? (
                 <SkeletonCircle size="11" />
               ) : (
-                <Avatar.Root size="lg" cursor="pointer">
+                <Avatar.Root size={{ base: "md", sm: "md", md: "lg", lg: "lg", xl: "lg" }} cursor="pointer">
                   <Avatar.Fallback name={session?.user?.name ?? "Segun Adebayo"} />
                   <Avatar.Image src={session?.user?.image ?? "https://bit.ly/sage-adebayo"} />
                 </Avatar.Root>

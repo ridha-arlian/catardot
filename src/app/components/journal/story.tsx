@@ -367,10 +367,10 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
 
         {/* Floating Action Button khusus mobile */}
         <Box position="fixed" bottom="24px" right="24px" zIndex={50} display={{ base: "block", md: "none" }}>
-          <MotionBox initial={{ width: 30, height: 30, borderRadius: "50%" }} animate={ open ? { width: "auto", height: "56", borderRadius: "16px" } : { width: 40, height: 40, borderRadius: "50%" }} transition={{ damping: 20 }} bg={journalStatus ? "green" : "orange"} color="white" overflow="hidden" cursor="pointer" display="flex" alignItems="center" justifyContent={open ? "flex-start" : "center"} px={open ? 3 : 0} py={open ? 3 : 0} shadow="xl" onClick={onToggle}>
+          <MotionBox textStyle="floatingButtonText" initial={{ width: 40, height: 40, borderRadius: "50%" }} animate={ open ? { width: "auto", height: "56", borderRadius: "16px" } : { width: 40, height: 40, borderRadius: "50%" }} transition={{ damping: 20 }} border="2px solid" bg="bg.canvas" borderColor={ journalStatus ? "brand.500" : "orange.500"} color="white" overflow="hidden" cursor="pointer" display="flex" alignItems="center" justifyContent={open ? "flex-start" : "center"} px={open ? 1 : 0} py={open ? 1 : 0} shadow="sm" onClick={onToggle}>
             <AnimatePresence>
               {open && (
-                <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.2 }} style={{ marginLeft: "8px", whiteSpace: "nowrap" }}>
+                <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.1 }} style={{ marginLeft: "8px", whiteSpace: "nowrap" }}>
                   {journalStatus ? "Bagus, kamu sudah menulis hari ini." : "Belum terlambat, ayo tulis cerita."}
                 </motion.div>
               )}
