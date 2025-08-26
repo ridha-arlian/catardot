@@ -58,32 +58,35 @@ export const TimeWidget = ({ onDateChange }: TimeWidgetProps) => {
   return (
     <VStack gap="2" align="start">
       {/* Clock Content */}
-      <Box p={3} zIndex={1} position="relative" overflow="hidden">  
-        {/* Time */}
-        <HStack gap={0} minH={{ base: "30px", md: "30px" }} textStyle="rubik" color={timeTextColor} textAlign="center" minW={{ base: "30px", md: "30px" }}>
-          <Text>
-            {hours}
+      <Box p={3} zIndex={1} position="relative" overflow="hidden">
+        <VStack gap={5} align="start">
+          {/* Time */}
+          <HStack gap={0} minH={{ base: "30px", md: "30px" }} textStyle="timeWidgetNum" color={timeTextColor} textAlign="center" minW={{ base: "30px", md: "30px" }}>
+            <Text>
+              {hours}
+            </Text>
+
+            <IOSBlinkingColon show={showColon} />
+
+            <Text display="inline-block" textAlign="center" minW={{ base: "30px", md: "30px" }}>
+              {minutes}
+            </Text>
+
+            <IOSBlinkingColon show={showColon} />
+
+            <Text opacity={0.8} display="inline-block" minW={{ base: "30px", md: "30px" }}>
+              {seconds}
+            </Text>
+          </HStack>
+
+          {/* Separator */}
+          <Box height="1px" bg="sage.500" width="100%" />
+
+          {/* Date */}
+          <Text textStyle="timeWidgetText" mb={20}>
+            {formatDate()}
           </Text>
-          
-          <IOSBlinkingColon show={showColon} />
-          
-          <Text display="inline-block" textAlign="center" minW={{ base: "30px", md: "30px" }}>
-            {minutes}
-          </Text>
-          
-          <IOSBlinkingColon show={showColon} />
-          
-          <Text opacity={0.8} display="inline-block" minW={{ base: "30px", md: "30px" }}>
-            {seconds}
-          </Text>
-        </HStack>
-        
-        <Box height="1px" bg="blue.normal" width="100%" alignSelf="center" position="relative" flexShrink="0"/>
-        
-        {/* Date */}
-        <Text textStyle="rubikSecond">
-          {formatDate()}
-        </Text>
+        </VStack>
       </Box>
     </VStack>
   )

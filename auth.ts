@@ -1,3 +1,4 @@
+import jwt from "jsonwebtoken"
 import NextAuth from "next-auth"
 import { prisma } from "@/prisma"
 import Google from "next-auth/providers/google"
@@ -9,6 +10,7 @@ declare module "next-auth" {
   interface Session {
     accessToken?: string
     refreshToken?: string
+    supabaseAccessToken?: string
   }
 }
 
@@ -72,6 +74,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       console.log("Session callback - user: ", user)
       console.log("Session callback - session.user.email: ", session.user.email)
       
+      const signingSecret = process.env.SUPABASE_JWT_SECRET
+      if (signingSecret) {
+        const payload = {
+          aud: "authenticated",
+          exp: Math.floor(new Date(session.expires).getTime() / 1000),
+          sub: user.id,
+          email: user.email,
+          role: "authenticated",
+        }
+        session.supabaseAccessToken = jwt.sign(payload, signingSecret)
+      }
+
       const account = await getGoogleAccountByEmail(session.user.email ?? "")
       
       if (!account) {

@@ -6,9 +6,10 @@ import { Box, VStack, HStack, Text, Card, Status, SkeletonCircle, Skeleton } fro
 
 interface StatusWidgetProps {
   refreshTrigger?: number
+  onStatusChange?: (hasJournal: boolean) => void
 }
 
-export const StatusWidget = ({ refreshTrigger }: StatusWidgetProps) => {
+export const StatusWidget = ({ refreshTrigger, onStatusChange }: StatusWidgetProps) => {
   const [todayDate, setTodayDate] = useState("")
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -44,11 +45,12 @@ export const StatusWidget = ({ refreshTrigger }: StatusWidgetProps) => {
       const hasJournal = data !== null && data.date && data.content
       setHasJournalToday(hasJournal)
       console.log(`Journal check for ${today}:`, hasJournal ? 'Found' : 'Not found')
-
+      onStatusChange?.(hasJournal)
     } catch (error) {
       console.error("Error checking today journal:", error)
       setError(error instanceof Error ? error.message : "Unknown error")
       setHasJournalToday(false)
+      onStatusChange?.(false)
     } finally {
       setIsLoading(false)
     }
@@ -81,13 +83,14 @@ export const StatusWidget = ({ refreshTrigger }: StatusWidgetProps) => {
     return (
       <>
         <Box width="336px">
-          <Card.Root className="bg-card border-border shadow-sm">
+          <Card.Root bg="bg.canvas">
             <Box p={4}>
               <HStack gap={3}>
                 <SkeletonCircle size="6" />
                 <Skeleton flex="1" height="4" />
               </HStack>
-              <Skeleton mt={2} height="3" />
+              <Skeleton mt={2} height="4" />
+              <Skeleton mt={2} height="4" />
             </Box>
           </Card.Root>
         </Box>
@@ -98,7 +101,7 @@ export const StatusWidget = ({ refreshTrigger }: StatusWidgetProps) => {
   if (error) {
     return (
       <Box width="336px">
-        <Card.Root className="bg-card border-border shadow-sm">
+        <Card.Root bg="bg.canvas">
           <Box p={4}>
             <VStack align="start" gap={2}>
               <HStack gap={3}>
@@ -121,25 +124,42 @@ export const StatusWidget = ({ refreshTrigger }: StatusWidgetProps) => {
 
   return (
     <>
-      <Box width="336px">
-        <Card.Root className="bg-card border-border shadow-sm">
-          <Box p={4}>
-            <VStack align="start" gap={2}>
+      <Box width={{ base: "260px", md: "300px" }}>
+        <Card.Root bg="bg.canvas" border="1px solid" borderColor={hasJournalToday ? "brand.500" : "orange.600"}>
+          <Box p={{ base: 2, md: 4 }}>
+            <VStack align="start" gap={2} display={{ base: "none", md: "flex" }}>
               <HStack gap={3}>
-                <Status.Root size="sm" colorPalette={hasJournalToday ? "green" : "orange"}>
+                <Status.Root size="lg" colorPalette={hasJournalToday ? "green" : "orange"}>
                   <Status.Indicator />
                 </Status.Root>
-                <Text fontWeight="semibold" fontSize="sm" color={hasJournalToday ? "green.600" : "orange.600"}>
-                  { hasJournalToday ? "Sudah Menulis Catatan" : "Belum Menulis Catatan" }
+                <Text textStyle="headingStatusWidget" color={hasJournalToday ? "green.600" : "orange.600"}>
+                  { hasJournalToday ? "Sudah Menulis Cerita" : "Belum Menulis Cerita" }
                 </Text>
               </HStack>
-              <Text fontSize="xs">
-                { hasJournalToday ? "Kamu sudah menulis catatan harian hari ini. Terima kasih!" : "Kamu belum menulis catatan harian hari ini. Ayo buat catatan hari ini!" }
+              <Text textStyle="contentStatusWidget">
+                {/* { hasJournalToday ? "Kamu sudah menulis catatan harian hari ini. Terima kasih!" : "Kamu belum menulis catatan harian hari ini. Ayo buat catatan hari ini!" } */}
+                { hasJournalToday ? "Bagus, kamu berhasil menulis cerita hari ini." : "Belum terlambat, tulislah satu cerita sebelum hari berganti." }
               </Text>
-              <Text fontSize="xs" color="gray.500">
+              <Text textStyle="infoStatusWidget" color="gray.500">
                 Terakhir dicek: {new Date().toLocaleTimeString('id-ID', { hour: "2-digit", minute: "2-digit" })}
               </Text>
             </VStack>
+
+            {/* Mobile */}
+            <VStack align="start" gap={2} display={{ base: "flex", md: "none" }}>
+              <HStack gap={2} align="center">
+                <Status.Root size="md" colorPalette={hasJournalToday ? "green" : "orange"}>
+                  <Status.Indicator />
+                </Status.Root>
+                <Text textStyle="headingStatusWidget" color={hasJournalToday ? "green.600" : "orange.600"}>
+                  { hasJournalToday ? "Bagus, kamu sudah menulis hari ini." : "Belum terlambat, ayo tulis cerita." }
+                </Text>
+              </HStack>
+              <Text textStyle="infoStatusWidget" color="gray.500">
+                Terakhir dicek: {new Date().toLocaleTimeString('id-ID', { hour: "2-digit", minute: "2-digit" })}
+              </Text>
+            </VStack> 
+            
           </Box>
         </Card.Root>
       </Box>

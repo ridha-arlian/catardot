@@ -11,7 +11,7 @@
     "migrate": "dotenv -e .env.local -- npx prisma migrate dev",
     "generate": "dotenv -e .env.local -- npx prisma generate",
     "db-push": "dotenv -e .env.local -- npx prisma db push",
-    "chakra": "npx @chakra-ui/cli typegen ./src/components/theme.ts --watch"
+    "chakra": "npx chakra typegen ./src/components/theme.ts --watch"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",
@@ -23,6 +23,7 @@
     "@upstash/redis": "^1.35.3",
     "framer-motion": "^12.23.12",
     "googleapis": "^156.0.0",
+    "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.540.0",
     "next": "15.5.0",
     "next-auth": "^5.0.0-beta.29",
@@ -34,7 +35,9 @@
     "use-debounce": "^10.0.5"
   },
   "devDependencies": {
+    "@chakra-ui/cli": "^3.25.0",
     "@eslint/eslintrc": "^3",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20",
     "@types/ramda": "^0.31.0",
     "@types/react": "^19",
