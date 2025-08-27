@@ -59,31 +59,31 @@ export const TimeWidget = ({ onDateChange }: TimeWidgetProps) => {
     <VStack gap="2" align="start">
       {/* Clock Content */}
       <Box p={3} zIndex={1} position="relative" overflow="hidden">
-        <VStack gap={5} align="start">
+        <VStack gap={2} align="start">
           {/* Time */}
-          <HStack gap={0} minH={{ base: "30px", md: "30px" }} textStyle="timeWidgetNum" color={timeTextColor} textAlign="center" minW={{ base: "30px", md: "30px" }}>
+          <HStack gap={0} minH={{ base: "30px", md: "30px" }} textStyle="timeWidgetNum" color={timeTextColor} textAlign="center" minW={{ base: "40px", md: "30px" }}>
             <Text>
               {hours}
             </Text>
 
             <IOSBlinkingColon show={showColon} />
 
-            <Text display="inline-block" textAlign="center" minW={{ base: "30px", md: "30px" }}>
+            <Text display="inline-block" textAlign="center" width={{ base: "80px", md: "30px" }}>
               {minutes}
             </Text>
 
             <IOSBlinkingColon show={showColon} />
 
-            <Text opacity={0.8} display="inline-block" minW={{ base: "30px", md: "30px" }}>
+            <Text opacity={0.8} display="inline-block" width={{ base: "80px", md: "30px" }}>
               {seconds}
             </Text>
           </HStack>
 
           {/* Separator */}
-          <Box height="1px" bg="sage.500" width="100%" />
+          <Box height="1px" bg="sage.500" width="100%" mt={2} />
 
           {/* Date */}
-          <Text textStyle="timeWidgetText" mb={20}>
+          <Text textStyle="timeWidgetText" textAlign={{ base: "center", md: "start" }} w="100%">
             {formatDate()}
           </Text>
         </VStack>

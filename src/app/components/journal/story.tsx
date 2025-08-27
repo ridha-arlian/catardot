@@ -13,7 +13,7 @@ import { History } from "@/app/components/journal/history"
 import { TimeWidget } from "@/app/components/journal/timeWidget"
 import { StatusWidget } from "@/app/components/journal/statusWidget"
 import { createClient, setSupabaseAuth } from "@/utils/supabase/supabase.client"
-import { Box, VStack, HStack, Heading, Text, Button, Textarea, Center, Skeleton, useDisclosure } from "@chakra-ui/react"
+import { Box, VStack, HStack, Heading, Text, Button, Textarea, Center, Skeleton, useDisclosure, SkeletonCircle } from "@chakra-ui/react"
 
 const MotionBox = motion.create(Box)
 
@@ -263,7 +263,7 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
     return (
       <Center minH="200px">
         <VStack gap={4}>
-          <Skeleton height="20px" width="200px" />
+          <Skeleton height="20px" width="200px" border="1px solid" borderColor="gray.600"/>
           <Text>
             Setting up your journal...
           </Text>
@@ -277,17 +277,18 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
       <Box mt="80px" bg="bg.canvas">
         {/* Header */}
         <Box as="header">
-          <Box maxW="4xl" mx="auto" px={6}>
-            <HStack justify="space-between" align="center">
-              <VStack align="start" gap={1} mt={20}>
-                <TimeWidget onDateChange={setSelectedDate}/>
+          <Box maxW="4xl" mx="auto" px={{ base: 1, sm: 1, md: 6 }}>
+            <HStack justify="space-between" align="center" flexDir={{ base: "column", md: "row" }} w="100%">
+              <VStack align={{ base: "center", md: "start" }} gap={1} mt={{ base: 5, md: 20 }} w="100%">
+                <TimeWidget onDateChange={setSelectedDate} />
               </VStack>
-              <VStack align="end" gap={2} mt="20px" display={{ base: "none", md: "flex" }}>
+
+              <VStack align="end" gap={2} mt={{ base: 5, md: "20px" }} display={{ base: "none", md: "flex" }}>
                 <Button variant="outline" onClick={() => setShowPastEntries(!showPastEntries)}>
                   <BookOpen size={16} />
                   {showPastEntries ? "Hide" : "View"} Past Entries
                 </Button>
-                <StatusWidget refreshTrigger={refreshTrigger} onStatusChange={setJournalStatus}  />
+                <StatusWidget refreshTrigger={refreshTrigger} onStatusChange={setJournalStatus} />
               </VStack>
             </HStack>
           </Box>
@@ -299,35 +300,28 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
             <Box bg="bg.canvas" borderWidth={1} borderColor="gray.200" shadow="sm" rounded="md" p={8}>
               {isLoading ? (
                 <VStack gap={6} align="stretch">
-                  <Skeleton height="40px" width="120px" />
-                  <Skeleton height="120px" />
-                  <Skeleton height="40px" width="170px" />
+                  <Skeleton height="40px" width="120px" border="1px solid" borderColor="gray.600" />
+                  <Skeleton height="120px" border="1px solid" borderColor="gray.600"/>
+                  <Skeleton height="40px" width="170px" border="1px solid" borderColor="gray.600"/>
                 </VStack>
               ) : !hasWrittenToday ? (
                 <VStack gap={6} align="stretch">
                   <VStack gap={3} textAlign="center">
-                    <Center w={12} h={12} bg="blue.100" rounded="full">
-                      <Sparkles size={24} color="#3182CE" />
-                    </Center>
-                    <Heading size="md" fontFamily="serif">
-                      What&apos;s your sentence for today?
+                    <Heading textStyle="headingTextStoryBoxEdit">
+                      What&apos;s Your Story Today?
                     </Heading>
-                    <Text color="gray.500" maxW="md" mx="auto">
-                      Write one meaningful sentence about something that happened today. It could be something you noticed, learned, or experienced.
+                    <Text color="gray.500" maxW="md" mx="auto" textStyle="subHeadingTextStoryBoxEdit">
+                      Write One Meaningful Moment From Today.
                     </Text>
                   </VStack>
 
-                  <VStack gap={4} align="stretch">
-                    <Textarea placeholder={prompts.promptContent} value={storyContent} onChange={(e) => setStoryContent(e.target.value)} minH="120px" disabled={existingJournal} fontSize="lg" resize="none" maxLength={280} autoresize/>
-                    <HStack justify="space-between">
-                      <Text fontSize="sm" color="gray.500">
-                        {storyContent.length}/280 characters
-                      </Text>
-                      <Button colorScheme="blue" width="170px" onClick={handleSaveStory} disabled={!storyContent.trim() || existingJournal || isCheckingExisting}>
-                        {existingJournal ? "Catatan Sudah Ada" : "Save Today\'s Sentence"}
-                      </Button>
-                    </HStack>
-                    <Button variant="outline" width="170px" colorScheme="gray" onClick={handleSaveDraft} disabled={!storyContent.trim() || existingJournal || isCheckingExisting}>
+                  <VStack gap={4} align="center">
+                    <Textarea textStyle="placeholderStoryBoxEdit" placeholder={prompts.promptContent} value={storyContent} onChange={(e) => setStoryContent(e.target.value)} minH="120px" disabled={existingJournal} autoresize/>
+                    <Button textStyle="ButtonStoryBoxEdit" onClick={handleSaveStory} disabled={!storyContent.trim() || existingJournal || isCheckingExisting}>
+                      {existingJournal ? "Catatan Sudah Ada" : "Save Today\'s Sentence"}
+                    </Button>
+                    
+                    <Button variant="outline" textStyle="placeholderStoryBoxEdit" onClick={handleSaveDraft} disabled={!storyContent.trim() || existingJournal || isCheckingExisting}>
                       Save Draft
                     </Button>
                   </VStack>
@@ -335,23 +329,20 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
               ) : (
                 <VStack gap={6} align="stretch">
                   <VStack gap={3} textAlign="center">
-                    <Center w={12} h={12} bg="blue.100" rounded="full">
-                      <Sparkles size={24} color="#3182CE" />
-                    </Center>
-                    <Heading size="md" fontFamily="serif">
+                    <Heading textStyle="headingTextStoryBoxEdit">
                       Today&apos;s Entry Complete
                     </Heading>
-                    <Text color="gray.500">
-                      You&apos;ve captured today&apos;s moment. See you tomorrow!
+                    <Text color="gray.500" textStyle="subHeadingTextStoryBoxEdit">
+                      You&apos;ve captured today&apos;s moment.<br/>See you tomorrow!
                     </Text>
                   </VStack>
 
-                  <Box bg="gray.100" rounded="md" p={6} borderWidth={1} borderColor="gray.200" fontStyle="italic">
+                  <Box rounded="md" p={6} borderWidth={1} borderColor="gray.200" textStyle="textStoryBoxEdit" fontStyle="italic" textAlign="center">
                     {todayEntry === "" ? <Skeleton height="40px" /> : `"${todayEntry}"`}
                   </Box>
 
                   <Center>
-                    <Button variant="outline" colorScheme="blue" onClick={editTodayEntry}>
+                    <Button variant="outline" textStyle="ButtonStoryBoxEdit" colorScheme="blue" onClick={editTodayEntry}>
                       Edit Today&apos;s Entry
                     </Button>
                   </Center>
@@ -359,23 +350,36 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
               )}
             </Box>
           </VStack>
-
+          
+          {/* Tombol Past Entries khusus mobile */}
+          <Box display={{ base: "block", md: "none" }} mb={6}>
+            <Button width="100%" variant="outline" onClick={() => setShowPastEntries(!showPastEntries)} textStyle="buttonHistory">
+              <BookOpen size={20} />
+              {showPastEntries ? "Hide Past Entries" : "View Past Entries"}
+            </Button>
+          </Box>
           {showPastEntries && (
-            <History refreshTrigger={refreshTrigger}/>
+            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3, ease: "easeInOut" }} style={{ overflow: "hidden" }}>
+              <History refreshTrigger={refreshTrigger} />
+            </motion.div>
           )}
         </Box>
-
+          
         {/* Floating Action Button khusus mobile */}
         <Box position="fixed" bottom="24px" right="24px" zIndex={50} display={{ base: "block", md: "none" }}>
-          <MotionBox textStyle="floatingButtonText" initial={{ width: 40, height: 40, borderRadius: "50%" }} animate={ open ? { width: "auto", height: "56", borderRadius: "16px" } : { width: 40, height: 40, borderRadius: "50%" }} transition={{ damping: 20 }} border="2px solid" bg="bg.canvas" borderColor={ journalStatus ? "brand.500" : "orange.500"} color="white" overflow="hidden" cursor="pointer" display="flex" alignItems="center" justifyContent={open ? "flex-start" : "center"} px={open ? 1 : 0} py={open ? 1 : 0} shadow="sm" onClick={onToggle}>
-            <AnimatePresence>
-              {open && (
-                <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.1 }} style={{ marginLeft: "8px", whiteSpace: "nowrap" }}>
-                  {journalStatus ? "Bagus, kamu sudah menulis hari ini." : "Belum terlambat, ayo tulis cerita."}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </MotionBox>
+          {isLoading ? (
+            <SkeletonCircle size="12" border="1px solid" borderColor="gray.600" />
+          ) : (
+            <MotionBox textStyle="floatingButtonText" initial={{ width: 40, height: 40, borderRadius: "50%" }} animate={ open ? { width: "auto", height: "56", borderRadius: "16px" } : { width: 40, height: 40, borderRadius: "50%" }} transition={{ damping: 20 }} border="2px solid" bg="bg.canvas" borderColor={ journalStatus ? "brand.500" : "orange.500"} color="white" overflow="hidden" cursor="pointer" display="flex" alignItems="center" justifyContent={open ? "flex-start" : "center"} px={open ? 1 : 0} py={open ? 1 : 0} shadow="sm" onClick={onToggle}>
+              <AnimatePresence>
+                {open && (
+                  <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.1 }} style={{ marginLeft: "8px", whiteSpace: "nowrap" }}>
+                    {journalStatus ? "Bagus, kamu sudah menulis hari ini." : "Belum terlambat, ayo tulis cerita."}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </MotionBox>
+          )}
         </Box>
       </Box>
     </>

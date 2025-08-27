@@ -1,11 +1,14 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
 import { useDebounce } from "use-debounce"
 import { monthNames } from "@/app/utils/month"
 import { useState, useEffect, useCallback } from "react"
+import { motion, AnimatePresence } from "framer-motion"
 import { HistoryModal } from "@/app/components/modals/historyModal"
-import { Box, VStack, HStack, Text, Portal, Select, createListCollection, Button } from "@chakra-ui/react"
+import { Box, VStack, HStack, Text, Portal, Select, createListCollection, Button, Skeleton, Separator } from "@chakra-ui/react"
+import { RefreshCw } from "lucide-react"
 
 interface JournalEntry {
   storyDate: string
@@ -132,129 +135,148 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
   return (
     <>
       <VStack gap={6} align="stretch">
-        <HStack gap={4} justify="space-between">
-          <HStack gap={4}>
-            {/* Select Bulan */}
-            <Select.Root collection={monthCollection} size="sm" width="150px" value={[selectedMonth]} onValueChange={(val) => {
-              const newMonth = Array.isArray(val.value) ? val.value[0] : val.value
-              setSelectedMonth(newMonth)
-              invalidateCurrentCache()
-            }}>
-              <Select.HiddenSelect />
-              <Select.Label>
-                Select Month
-              </Select.Label>
-              <Select.Control>
-                <Select.Trigger>
-                  <Select.ValueText placeholder="Select Month" />
-                </Select.Trigger>
-                <Select.IndicatorGroup>
-                  <Select.Indicator />
-                </Select.IndicatorGroup>
-              </Select.Control>
-              <Portal>
-                <Select.Positioner>
-                  <Select.Content>
-                    <Select.ItemGroup key="Months">
-                      {monthCollection.items.map((item) => (
-                        <Select.Item item={item} key={item.value}>
-                          {item.label}
-                          <Select.ItemIndicator />
-                        </Select.Item>
-                      ))}
-                    </Select.ItemGroup>
-                  </Select.Content>
-                </Select.Positioner>
-              </Portal>
-            </Select.Root>
+        {/* Main Container */}
+        <Box border="1px solid" borderColor="gray.200" borderRadius="lg" bg="bg.canvas" shadow="sm" overflow="hidden">
+          {/* Filter Controls di dalam kotak */}
+          <Box p={4} borderBottom="1px solid" borderColor="gray.200" bg="bg.canvas">
+            <HStack gap={3} justify="center">
+              {/* Select Bulan */}
+              <Select.Root collection={monthCollection} size="sm" width="140px" value={[selectedMonth]} onValueChange={(val) => {
+                const newMonth = Array.isArray(val.value) ? val.value[0] : val.value
+                setSelectedMonth(newMonth)
+                invalidateCurrentCache()
+              }}>
+                <Select.HiddenSelect />
+                <Select.Control>
+                  <Select.Trigger bg="bg.canvas" borderColor="gray.300" textStyle="selectHistory">
+                    <Select.ValueText placeholder="Pilih Bulan" textStyle="selectHistory" />
+                  </Select.Trigger>
+                  <Select.IndicatorGroup>
+                    <Select.Indicator />
+                  </Select.IndicatorGroup>
+                </Select.Control>
+                <Portal>
+                  <Select.Positioner>
+                    <Select.Content>
+                      <Select.ItemGroup key="Months">
+                        {monthCollection.items.map((item) => (
+                          <Select.Item item={item} key={item.value} textStyle="selectHistory">
+                            {item.label}
+                            <Select.ItemIndicator />
+                          </Select.Item>
+                        ))}
+                      </Select.ItemGroup>
+                    </Select.Content>
+                  </Select.Positioner>
+                </Portal>
+              </Select.Root>
 
-            {/* Select Tahun */}
-            <Select.Root collection={yearCollection} size="sm" width="120px" value={[selectedYear]} onValueChange={(val) => {
-              const newYear = Array.isArray(val.value) ? val.value[0] : val.value
-              setSelectedYear(newYear)
-              invalidateCurrentCache()
-            }}>
-              <Select.HiddenSelect />
-              <Select.Label>
-                Select Year
-              </Select.Label>
-              <Select.Control>
-                <Select.Trigger>
-                  <Select.ValueText placeholder="Select Year" />
-                </Select.Trigger>
-                <Select.IndicatorGroup>
-                  <Select.Indicator />
-                </Select.IndicatorGroup>
-              </Select.Control>
-              <Portal>
-                <Select.Positioner>
-                  <Select.Content>
-                    <Select.ItemGroup key="Years">
-                      {yearCollection.items.map((item) => (
-                        <Select.Item item={item} key={item.value}>
-                          {item.label}
-                          <Select.ItemIndicator />
-                        </Select.Item>
-                      ))}
-                    </Select.ItemGroup>
-                  </Select.Content>
-                </Select.Positioner>
-              </Portal>
-            </Select.Root>
-          </HStack>
-          <Button size="sm" variant="outline" onClick={handleManualRefresh} disabled={loading}>
-            {loading ? "Loading..." : "Refresh"}
-          </Button>
-        </HStack>
+              {/* Select Tahun */}
+              <Select.Root collection={yearCollection} size="sm" width="110px" value={[selectedYear]} onValueChange={(val) => {
+                const newYear = Array.isArray(val.value) ? val.value[0] : val.value
+                setSelectedYear(newYear)
+                invalidateCurrentCache()
+              }}>
+                <Select.HiddenSelect />
+                <Select.Control>
+                  <Select.Trigger bg="bg.canvas" borderColor="gray.300" textStyle="selectHistory">
+                    <Select.ValueText placeholder="Tahun" textStyle="selectHistory" />
+                  </Select.Trigger>
+                  <Select.IndicatorGroup>
+                    <Select.Indicator />
+                  </Select.IndicatorGroup>
+                </Select.Control>
+                <Portal>
+                  <Select.Positioner>
+                    <Select.Content>
+                      <Select.ItemGroup key="Years">
+                        {yearCollection.items.map((item) => (
+                          <Select.Item item={item} key={item.value} textStyle="selectHistory">
+                            {item.label}
+                            <Select.ItemIndicator />
+                          </Select.Item>
+                        ))}
+                      </Select.ItemGroup>
+                    </Select.Content>
+                  </Select.Positioner>
+                </Portal>
+              </Select.Root>
 
-        {/* Error State */}
-        {error && (
-          <Box p={4} bg="red.50" border="1px solid" borderColor="red.200" borderRadius="md">
-            <Text color="red.600" fontSize="sm">
-              Error: {error}
-            </Text>
-            <Button size="sm" mt={2} onClick={handleManualRefresh}>
-              Coba Lagi
-            </Button>
+              {/* Refresh Button dengan Icon */}
+              <Button size="sm" variant="outline" onClick={handleManualRefresh} disabled={loading} bg="bg.canvas" borderColor="gray.300" _hover={{ bg: "gray.50" }} px={3}>
+                <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+              </Button>
+            </HStack>
           </Box>
-        )}
 
-        {/* History List */}
-        {loading ? (
-          <Box p={6} textAlign="center">
-            <Text>
-              Memuat catatan...
-            </Text>
-          </Box>
-        ) : entries.length > 0 ? (
-          entries.map((entry) => {
-            const entryDate = entry.storyDate || entry.date
-            if (!entryDate) {
-              console.warn("Entry without date found:", entry)
-              return null
-            }
-            return (
-              <Box key={entryDate} shadow="sm" p={4} _hover={{ shadow: "md" }} borderRadius="md" border="1px solid" borderColor="gray.200">
-                <VStack align="start" gap={2}>
-                  <Text fontWeight="bold" fontSize="md">
-                    {new Date(entryDate).toLocaleDateString("id-ID", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
-                  </Text>
-                  <Text fontSize="sm" color="gray.700">
-                    {entry.content}
-                  </Text>
-                  <HistoryModal entry={entry} onSave={handleEntryUpdate}/>
-                </VStack>
+          {/* Error State */}
+          {error && (
+            <Box p={4} bg="red.50" borderBottom="1px solid" borderColor="red.200">
+              <Text color="red.600" fontSize="sm">
+                Error: {error}
+              </Text>
+              <Button size="sm" mt={2} onClick={handleManualRefresh}>
+                Coba Lagi
+              </Button>
+            </Box>
+          )}
+
+          {/* History List */}
+          <Box maxH="500px" overflowY="auto" scrollbar="thin">
+            {/* History List */}
+            {loading ? (
+              <VStack gap={3} p={4}>
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <Box key={index} w="100%" shadow="sm" p={4} borderRadius="md" border="1px solid" borderColor="gray.100">
+                    <VStack align="start" gap={3}>
+                      <Skeleton height="20px" width="200px" />
+                      <Skeleton height="16px" width="100%" />
+                      <Skeleton height="16px" width="80%" />
+                      <Skeleton height="24px" width="60px" />
+                    </VStack>
+                  </Box>
+                ))}
+              </VStack>
+            ) : entries.length > 0 ? (
+              <VStack gap={4} p={4} align="stretch">
+                {entries.map((entry) => {
+                  const entryDate = entry.storyDate || entry.date
+                  if (!entryDate) {
+                    console.warn("Entry without date found:", entry)
+                    return null
+                  }
+                  return (
+                    <Box key={entryDate} shadow="sm" gap={4} p={4} _hover={{ shadow: "md" }} borderRadius="md" border="1px solid" borderColor="gray.200">
+                      <VStack align="start" gap={2} w="100%">
+                        {/* Judul (tanggal) */}
+                        <Text textStyle="headingHistoryList">
+                          {new Date(entryDate).toLocaleDateString("id-ID", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+                        </Text>
+
+                        {/* Isi catatan */}
+                        <Text textStyle="contentHistoryList" color="white">
+                          {entry.content}
+                        </Text>
+
+                        {/* Tombol/Modal */}
+                        <HistoryModal entry={entry} onSave={handleEntryUpdate} />
+                      </VStack>
+                    </Box>
+                  )
+                })}
+              </VStack>
+            ) : (
+              <Box p={6} textAlign="center">
+                <Text>
+                  Belum ada catatan untuk bulan & tahun ini
+                </Text>
               </Box>
-            )
-          })
-        ) : (
-          <Box p={6} textAlign="center">
-            <Text>
-              Belum ada catatan untuk bulan & tahun ini
-            </Text>
+            )}
           </Box>
-        )}
-        {entries.length > 0 && (
+        </Box>
+
+        {/* Summary Info */}
+        {entries.length > 0 && !loading && (
           <Box p={3} bg="blue.50" borderRadius="md">
             <Text fontSize="sm" color="blue.700">
               Total {entries.length} catatan di {monthNames[parseInt(selectedMonth) - 1]} {selectedYear}

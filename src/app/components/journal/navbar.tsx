@@ -59,7 +59,7 @@ export const Navbar = () => {
           <Menu.Root positioning={{ placement: "right-end" }}>
             <Menu.Trigger rounded="full" focusRing="outside">
               {isLoading ? (
-                <SkeletonCircle size="11" />
+                <SkeletonCircle size="11" border="1px solid" borderColor="gray.600"/>
               ) : (
                 <Avatar.Root size={{ base: "md", sm: "md", md: "lg", lg: "lg", xl: "lg" }} cursor="pointer">
                   <Avatar.Fallback name={session?.user?.name ?? "Segun Adebayo"} />

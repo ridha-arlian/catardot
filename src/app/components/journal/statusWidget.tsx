@@ -86,11 +86,11 @@ export const StatusWidget = ({ refreshTrigger, onStatusChange }: StatusWidgetPro
           <Card.Root bg="bg.canvas">
             <Box p={4}>
               <HStack gap={3}>
-                <SkeletonCircle size="6" />
-                <Skeleton flex="1" height="4" />
+                <SkeletonCircle size="6" border="1px solid" borderColor="gray.600"/>
+                <Skeleton flex="1" height="4" border="1px solid" borderColor="gray.600"/>
               </HStack>
-              <Skeleton mt={2} height="4" />
-              <Skeleton mt={2} height="4" />
+              <Skeleton mt={2} height="4" border="1px solid" borderColor="gray.600"/>
+              <Skeleton mt={2} height="4" border="1px solid" borderColor="gray.600"/>
             </Box>
           </Card.Root>
         </Box>
@@ -137,29 +137,12 @@ export const StatusWidget = ({ refreshTrigger, onStatusChange }: StatusWidgetPro
                 </Text>
               </HStack>
               <Text textStyle="contentStatusWidget">
-                {/* { hasJournalToday ? "Kamu sudah menulis catatan harian hari ini. Terima kasih!" : "Kamu belum menulis catatan harian hari ini. Ayo buat catatan hari ini!" } */}
                 { hasJournalToday ? "Bagus, kamu berhasil menulis cerita hari ini." : "Belum terlambat, tulislah satu cerita sebelum hari berganti." }
               </Text>
               <Text textStyle="infoStatusWidget" color="gray.500">
                 Terakhir dicek: {new Date().toLocaleTimeString('id-ID', { hour: "2-digit", minute: "2-digit" })}
               </Text>
-            </VStack>
-
-            {/* Mobile */}
-            <VStack align="start" gap={2} display={{ base: "flex", md: "none" }}>
-              <HStack gap={2} align="center">
-                <Status.Root size="md" colorPalette={hasJournalToday ? "green" : "orange"}>
-                  <Status.Indicator />
-                </Status.Root>
-                <Text textStyle="headingStatusWidget" color={hasJournalToday ? "green.600" : "orange.600"}>
-                  { hasJournalToday ? "Bagus, kamu sudah menulis hari ini." : "Belum terlambat, ayo tulis cerita." }
-                </Text>
-              </HStack>
-              <Text textStyle="infoStatusWidget" color="gray.500">
-                Terakhir dicek: {new Date().toLocaleTimeString('id-ID', { hour: "2-digit", minute: "2-digit" })}
-              </Text>
-            </VStack> 
-            
+            </VStack>            
           </Box>
         </Card.Root>
       </Box>

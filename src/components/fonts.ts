@@ -1,6 +1,8 @@
 import { defineTextStyles } from "@chakra-ui/react"
 
 export const textStyles = defineTextStyles({
+
+  // Landing Page
   headingLP:{
     description: "For Heading in Landing Page",
     value: {
@@ -133,6 +135,8 @@ export const textStyles = defineTextStyles({
       textTransform: "none",
     },
   },
+
+  // Navbar
   headingNav:{
     description: "For Heading in Navbar",
     value: {
@@ -169,12 +173,14 @@ export const textStyles = defineTextStyles({
       textTransform: "none",
     },
   },
+
+  // Time Widget
   timeWidgetNum:{
     description: "For Number in Time Widget",
     value: {
       fontFamily: "var(--font-quicksand)",
       fontWeight: "600",
-      fontSize: { base: "14px", sm: "16px", md: "16px", lg: "16px", xl: "60px" },
+      fontSize: { base: "60px", sm: "16px", md: "16px", lg: "16px", xl: "60px" },
       lineHeight: "20px",
       letterSpacing: "0px",
       textDecoration: "none",
@@ -186,13 +192,15 @@ export const textStyles = defineTextStyles({
     value: {
       fontFamily: "var(--font-quicksand)",
       fontWeight: "600",
-      fontSize: { base: "14px", sm: "16px", md: "16px", lg: "16px", xl: "35px" },
+      fontSize: { base: "25px", sm: "16px", md: "16px", lg: "16px", xl: "35px" },
       lineHeight: "20px",
       letterSpacing: "0px",
       textDecoration: "none",
       textTransform: "none",
     },
   },
+
+  // Status Widget
   headingStatusWidget:{
     description: "For Text in Time Widget",
     value: {
@@ -229,11 +237,125 @@ export const textStyles = defineTextStyles({
       textTransform: "none",
     },
   },
+
+  // FAB
   floatingButtonText:{
     description: "For Text in FAB",
     value: {
       fontFamily: "var(--font-quicksand)",
       fontWeight: "600",
+      fontSize: { base: "14px", sm: "12px", md: "16px", lg: "16px", xl: "14px" },
+      lineHeight: "20px",
+      letterSpacing: "0px",
+      textDecoration: "none",
+      textTransform: "none",
+    },
+  },
+
+  // Story Box
+  headingTextStoryBoxEdit:{
+    description: "For Heading Text in Story Box",
+    value: {
+      fontFamily: "var(--font-quicksand)",
+      fontWeight: "600",
+      fontSize: { base: "25px", sm: "12px", md: "16px", lg: "16px", xl: "14px" },
+      lineHeight: "40px",
+      letterSpacing: "0px",
+      textDecoration: "none",
+      textTransform: "none",
+    },
+  },
+  subHeadingTextStoryBoxEdit:{
+    description: "For Sub Heading Text in Story Box",
+    value: {
+      fontFamily: "var(--font-quicksand)",
+      fontWeight: "500",
+      fontSize: { base: "16px", sm: "12px", md: "16px", lg: "16px", xl: "14px" },
+      lineHeight: "20px",
+      letterSpacing: "0px",
+      textDecoration: "none",
+      textTransform: "none",
+    },
+  },
+  textStoryBoxEdit:{
+    description: "For Sub Heading Text in Story Box",
+    value: {
+      fontFamily: "var(--font-quicksand)",
+      fontWeight: "500",
+      fontSize: { base: "16px", sm: "12px", md: "16px", lg: "16px", xl: "14px" },
+      lineHeight: "20px",
+      letterSpacing: "0px",
+      textDecoration: "none",
+      textTransform: "none",
+    },
+  },
+  ButtonStoryBoxEdit:{
+    description: "For Sub Heading Text in Story Box",
+    value: {
+      fontFamily: "var(--font-quicksand)",
+      fontWeight: "600",
+      fontSize: { base: "14px", sm: "12px", md: "16px", lg: "16px", xl: "14px" },
+      lineHeight: "20px",
+      letterSpacing: "0px",
+      textDecoration: "none",
+      textTransform: "none",
+    },
+  },
+  placeholderStoryBoxEdit:{
+    description: "For Sub Heading Text in Story Box",
+    value: {
+      fontFamily: "var(--font-quicksand)",
+      fontWeight: "500",
+      fontSize: { base: "16px", sm: "12px", md: "16px", lg: "16px", xl: "14px" },
+      lineHeight: "20px",
+      letterSpacing: "0px",
+      textDecoration: "none",
+      textTransform: "none",
+    },
+  },
+
+  // History
+  buttonHistory:{
+    description: "For Sub Heading Text in Story Box",
+    value: {
+      fontFamily: "var(--font-quicksand)",
+      fontWeight: "500",
+      fontSize: { base: "16px", sm: "12px", md: "16px", lg: "16px", xl: "14px" },
+      lineHeight: "20px",
+      letterSpacing: "0px",
+      textDecoration: "none",
+      textTransform: "none",
+    },
+  },
+  selectHistory:{
+    description: "For Sub Heading Text in Story Box",
+    value: {
+      fontFamily: "var(--font-quicksand)",
+      fontWeight: "500",
+      fontSize: { base: "14px", sm: "12px", md: "16px", lg: "16px", xl: "14px" },
+      lineHeight: "20px",
+      letterSpacing: "0px",
+      textDecoration: "none",
+      textTransform: "none",
+    },
+  },
+  headingHistoryList:{
+    description: "For Sub Heading Text in Story Box",
+    value: {
+      fontFamily: "var(--font-quicksand)",
+      fontWeight: "700",
+      fontSize: { base: "18px", sm: "12px", md: "16px", lg: "16px", xl: "14px" },
+      lineHeight: "20px",
+      letterSpacing: "0px",
+      textDecoration: "none",
+      textTransform: "none",
+    },
+  },
+  contentHistoryList:{
+    description: "For Sub Heading Text in Story Box",
+    value: {
+      fontFamily: "var(--font-quicksand)",
+      fontWeight: "500",
       fontSize: { base: "14px", sm: "12px", md: "16px", lg: "16px", xl: "14px" },
       lineHeight: "20px",
       letterSpacing: "0px",
