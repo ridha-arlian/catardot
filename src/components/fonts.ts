@@ -339,6 +339,18 @@ export const textStyles = defineTextStyles({
       textTransform: "none",
     },
   },
+  summaryHistory:{
+    description: "For Sub Heading Text in Story Box",
+    value: {
+      fontFamily: "var(--font-quicksand)",
+      fontWeight: "500",
+      fontSize: { base: "14px", sm: "12px", md: "16px", lg: "16px", xl: "14px" },
+      lineHeight: "20px",
+      letterSpacing: "0px",
+      textDecoration: "none",
+      textTransform: "none",
+    },
+  },
   headingHistoryList:{
     description: "For Sub Heading Text in Story Box",
     value: {

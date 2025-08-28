@@ -297,12 +297,13 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
         {/* Main Content */}
         <Box as="main" maxW="4xl" mx="auto" px={6} py={6}>
           <VStack gap={8} align="stretch" mb={12}>
-            <Box bg="bg.canvas" borderWidth={1} borderColor="gray.200" shadow="sm" rounded="md" p={8}>
+            <Box bg="bg.canvas" border="2px solid" borderColor="sage.500" shadow="sm" rounded="md" p={8}>
               {isLoading ? (
                 <VStack gap={6} align="stretch">
-                  <Skeleton height="40px" width="120px" border="1px solid" borderColor="gray.600" />
+                  <Skeleton height="40px" border="1px solid" borderColor="gray.600" />
+                  <Skeleton height="40px" border="1px solid" borderColor="gray.600" />
                   <Skeleton height="120px" border="1px solid" borderColor="gray.600"/>
-                  <Skeleton height="40px" width="170px" border="1px solid" borderColor="gray.600"/>
+                  <Skeleton height="40px" border="1px solid" borderColor="gray.600"/>
                 </VStack>
               ) : !hasWrittenToday ? (
                 <VStack gap={6} align="stretch">
@@ -337,12 +338,12 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
                     </Text>
                   </VStack>
 
-                  <Box rounded="md" p={6} borderWidth={1} borderColor="gray.200" textStyle="textStoryBoxEdit" fontStyle="italic" textAlign="center">
+                  <Box rounded="md" p={6} border="1px solid" borderColor="sage.500" textStyle="textStoryBoxEdit" fontStyle="italic" textAlign="center">
                     {todayEntry === "" ? <Skeleton height="40px" /> : `"${todayEntry}"`}
                   </Box>
 
                   <Center>
-                    <Button variant="outline" textStyle="ButtonStoryBoxEdit" colorScheme="blue" onClick={editTodayEntry}>
+                    <Button variant="outline" textStyle="ButtonStoryBoxEdit" border="1px solid" borderColor="sage.500" onClick={editTodayEntry}>
                       Edit Today&apos;s Entry
                     </Button>
                   </Center>
@@ -353,11 +354,12 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
           
           {/* Tombol Past Entries khusus mobile */}
           <Box display={{ base: "block", md: "none" }} mb={6}>
-            <Button width="100%" variant="outline" onClick={() => setShowPastEntries(!showPastEntries)} textStyle="buttonHistory">
+            <Button width="100%" border="2px solid" borderColor="sage.500" shadow="sm" variant="outline" onClick={() => setShowPastEntries(!showPastEntries)} textStyle="buttonHistory">
               <BookOpen size={20} />
               {showPastEntries ? "Hide Past Entries" : "View Past Entries"}
             </Button>
           </Box>
+          
           {showPastEntries && (
             <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3, ease: "easeInOut" }} style={{ overflow: "hidden" }}>
               <History refreshTrigger={refreshTrigger} />

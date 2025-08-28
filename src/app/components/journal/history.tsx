@@ -136,9 +136,9 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
     <>
       <VStack gap={6} align="stretch">
         {/* Main Container */}
-        <Box border="1px solid" borderColor="gray.200" borderRadius="lg" bg="bg.canvas" shadow="sm" overflow="hidden">
+        <Box border="2px solid" borderColor="sage.500" borderRadius="md" bg="bg.canvas" shadow="sm" overflow="hidden">
           {/* Filter Controls di dalam kotak */}
-          <Box p={4} borderBottom="1px solid" borderColor="gray.200" bg="bg.canvas">
+          <Box p={4} borderBottom="2px solid" borderColor="sage.500" bg="bg.canvas">
             <HStack gap={3} justify="center">
               {/* Select Bulan */}
               <Select.Root collection={monthCollection} size="sm" width="140px" value={[selectedMonth]} onValueChange={(val) => {
@@ -148,7 +148,7 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
               }}>
                 <Select.HiddenSelect />
                 <Select.Control>
-                  <Select.Trigger bg="bg.canvas" borderColor="gray.300" textStyle="selectHistory">
+                  <Select.Trigger bg="bg.canvas" border="2px solid" borderColor="sage.500" textStyle="selectHistory">
                     <Select.ValueText placeholder="Pilih Bulan" textStyle="selectHistory" />
                   </Select.Trigger>
                   <Select.IndicatorGroup>
@@ -179,7 +179,7 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
               }}>
                 <Select.HiddenSelect />
                 <Select.Control>
-                  <Select.Trigger bg="bg.canvas" borderColor="gray.300" textStyle="selectHistory">
+                  <Select.Trigger bg="bg.canvas" border="2px solid" borderColor="sage.500" textStyle="selectHistory">
                     <Select.ValueText placeholder="Tahun" textStyle="selectHistory" />
                   </Select.Trigger>
                   <Select.IndicatorGroup>
@@ -203,7 +203,7 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
               </Select.Root>
 
               {/* Refresh Button dengan Icon */}
-              <Button size="sm" variant="outline" onClick={handleManualRefresh} disabled={loading} bg="bg.canvas" borderColor="gray.300" _hover={{ bg: "gray.50" }} px={3}>
+              <Button size="sm" variant="outline" onClick={handleManualRefresh} disabled={loading} bg="bg.canvas" border="2px solid" borderColor="sage.500" px={3}>
                 <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
               </Button>
             </HStack>
@@ -223,11 +223,12 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
 
           {/* History List */}
           <Box maxH="500px" overflowY="auto" scrollbar="thin">
+            
             {/* History List */}
             {loading ? (
               <VStack gap={3} p={4}>
                 {Array.from({ length: 5 }).map((_, index) => (
-                  <Box key={index} w="100%" shadow="sm" p={4} borderRadius="md" border="1px solid" borderColor="gray.100">
+                  <Box key={index} w="100%" shadow="sm" p={4} borderRadius="md" border="2px solid" borderColor="sage.500">
                     <VStack align="start" gap={3}>
                       <Skeleton height="20px" width="200px" />
                       <Skeleton height="16px" width="100%" />
@@ -239,6 +240,16 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
               </VStack>
             ) : entries.length > 0 ? (
               <VStack gap={4} p={4} align="stretch">
+
+                {/* Summary Info */}
+                {entries.length > 0 && !loading && (
+                  <Box p={2} bg="bg.canvas" borderRadius="md" border="2px solid" borderColor="sage.500">
+                    <Text ftextStyle="summaryHistory" color="white">
+                      Total {entries.length} catatan di {monthNames[parseInt(selectedMonth) - 1]} {selectedYear}
+                    </Text>
+                  </Box>
+                )}
+
                 {entries.map((entry) => {
                   const entryDate = entry.storyDate || entry.date
                   if (!entryDate) {
@@ -246,7 +257,7 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
                     return null
                   }
                   return (
-                    <Box key={entryDate} shadow="sm" gap={4} p={4} _hover={{ shadow: "md" }} borderRadius="md" border="1px solid" borderColor="gray.200">
+                    <Box key={entryDate} shadow="sm" gap={4} p={4} borderRadius="md" border="2px solid" borderColor="sage.500">
                       <VStack align="start" gap={2} w="100%">
                         {/* Judul (tanggal) */}
                         <Text textStyle="headingHistoryList">
@@ -275,14 +286,7 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
           </Box>
         </Box>
 
-        {/* Summary Info */}
-        {entries.length > 0 && !loading && (
-          <Box p={3} bg="blue.50" borderRadius="md">
-            <Text fontSize="sm" color="blue.700">
-              Total {entries.length} catatan di {monthNames[parseInt(selectedMonth) - 1]} {selectedYear}
-            </Text>
-          </Box>
-        )}
+        
       </VStack>
     </>
   )
