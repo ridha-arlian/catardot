@@ -4,11 +4,10 @@
 
 import { useDebounce } from "use-debounce"
 import { monthNames } from "@/app/utils/month"
+import { toaster } from "@/components/ui/toaster"
+import { RefreshCw, Edit3, Save, X } from "lucide-react"
 import { useState, useEffect, useCallback } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { HistoryModal } from "@/app/components/modals/historyModal"
-import { Box, VStack, HStack, Text, Portal, Select, createListCollection, Button, Skeleton, Separator } from "@chakra-ui/react"
-import { RefreshCw } from "lucide-react"
+import { Box, VStack, HStack, Text, Portal, Select, createListCollection, Button, Skeleton, Separator, Textarea, Center } from "@chakra-ui/react"
 
 interface JournalEntry {
   storyDate: string
@@ -46,6 +45,9 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
   const [cache, setCache] = useState<Record<string, JournalEntry[]>>({})
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString())
   const [selectedMonth, setSelectedMonth] = useState((new Date().getMonth() + 1 ).toString())
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editContent, setEditContent] = useState("")
+  const [isSaving, setIsSaving] = useState(false)
 
   const [debouncedYear] = useDebounce(selectedYear, 300)
   const [debouncedMonth] = useDebounce(selectedMonth, 300)
@@ -97,6 +99,101 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
     }
   }, [debouncedMonth, debouncedYear, cache])
 
+  const saveEntryToAPI = async (content: string, date: string) => {
+    const response = await fetch("/api/story", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ 
+        content,
+        storyDate: date
+      }),
+      credentials: "include"
+    })
+
+    const data = await response.json()
+    if (!response.ok) throw new Error(data.error || "Gagal menyimpan catatan")
+    return data
+  }
+
+  const handleSaveEdit = async (entryDate: string) => {
+    if (!editContent.trim()) {
+      toaster.create({
+        title: "Catatan Kosong",
+        description: "Mohon isi catatan terlebih dahulu",
+        type: "warning",
+        duration: 3000,
+      })
+      return
+    }
+
+    setIsSaving(true)
+    
+    const savePromise = saveEntryToAPI(editContent, entryDate)
+    
+    toaster.promise(savePromise, {
+      success: {
+        title: "Catatan Berhasil Diperbarui!",
+        description: "Perubahan Anda telah tersimpan",
+        duration: 3000,
+      },
+      error: {
+        title: "Gagal Memperbarui Catatan",
+        description: "Terjadi kesalahan saat menyimpan. Silakan coba lagi",
+        duration: 5000,
+      },
+      loading: {
+        title: "Menyimpan...",
+        description: "Sedang memperbarui catatan Anda"
+      },
+    })
+
+    try {
+      await savePromise
+      
+      // Update local state
+      setEntries(prev => prev.map(entry => 
+        (entry.storyDate === entryDate || entry.date === entryDate) 
+          ? { ...entry, content: editContent }
+          : entry
+      ))
+      
+      // Update cache
+      const key = `${debouncedYear}-${debouncedMonth}`
+      setCache(prev => ({
+        ...prev,
+        [key]: prev[key]?.map(entry => 
+          (entry.storyDate === entryDate || entry.date === entryDate)
+            ? { ...entry, content: editContent }
+            : entry
+        ) || []
+      }))
+      
+      // Exit edit mode
+      setEditingId(null)
+      setEditContent("")
+      
+    } catch (error) {
+      console.error("Error updating entry:", error)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const startEdit = (entry: JournalEntry) => {
+    const entryDate = entry.storyDate || entry.date
+    if (!entryDate) {
+      console.error("Cannot edit entry: no date found")
+      return
+    }
+    setEditingId(entryDate)
+    setEditContent(entry.content)
+  }
+
+  const cancelEdit = () => {
+    setEditingId(null)
+    setEditContent("")
+  }
+
   useEffect(() => {
     fetchEntries()
   }, [debouncedMonth, debouncedYear, fetchEntries])
@@ -111,15 +208,6 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
   const handleManualRefresh = () => {
     console.log("Manual refresh triggered")
     fetchEntries(true)
-  }
-
-  const handleEntryUpdate = (updatedEntry: Partial<JournalEntry>) => {
-    const targetDate = updatedEntry.storyDate || updatedEntry.date
-    if (!targetDate) return
-    setEntries((prev) => prev.map((e) => (e.storyDate === targetDate || e.date === targetDate) ? { ...e, ...updatedEntry } : e))
-    const key = `${debouncedYear}-${debouncedMonth}`
-    setCache(prev => ({ ...prev, [key]: prev[key]?.map(e => (e.storyDate === targetDate || e.date === targetDate) ? { ...e, ...updatedEntry } : e) || [] }))
-    console.log(`Local state updated for ${targetDate}`)
   }
 
   const invalidateCurrentCache = () => {
@@ -137,7 +225,7 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
       <VStack gap={6} align="stretch">
         {/* Main Container */}
         <Box border="2px solid" borderColor="sage.500" borderRadius="md" bg="bg.canvas" shadow="sm" overflow="hidden">
-          {/* Filter Controls di dalam kotak */}
+          {/* Filter Controls */}
           <Box p={4} borderBottom="2px solid" borderColor="sage.500" bg="bg.canvas">
             <HStack gap={3} justify="center">
               {/* Select Bulan */}
@@ -202,7 +290,7 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
                 </Portal>
               </Select.Root>
 
-              {/* Refresh Button dengan Icon */}
+              {/* Refresh Button */}
               <Button size="sm" variant="outline" onClick={handleManualRefresh} disabled={loading} bg="bg.canvas" border="2px solid" borderColor="sage.500" px={3}>
                 <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
               </Button>
@@ -223,8 +311,6 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
 
           {/* History List */}
           <Box maxH="500px" overflowY="auto" scrollbar="thin">
-            
-            {/* History List */}
             {loading ? (
               <VStack gap={3} p={4}>
                 {Array.from({ length: 5 }).map((_, index) => (
@@ -240,37 +326,62 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
               </VStack>
             ) : entries.length > 0 ? (
               <VStack gap={4} p={4} align="stretch">
-
                 {/* Summary Info */}
-                {entries.length > 0 && !loading && (
-                  <Box p={2} bg="bg.canvas" borderRadius="md" border="2px solid" borderColor="sage.500">
-                    <Text textStyle="summaryHistory" color="white">
-                      Total {entries.length} catatan di {monthNames[parseInt(selectedMonth) - 1]} {selectedYear}
-                    </Text>
-                  </Box>
-                )}
+                <Box p={2} bg="bg.canvas" borderRadius="md" border="2px solid" borderColor="sage.500">
+                  <Text textStyle="summaryHistory" color="white">
+                    Total {entries.length} catatan di {monthNames[parseInt(selectedMonth) - 1]} {selectedYear}
+                  </Text>
+                </Box>
 
                 {entries.map((entry) => {
                   const entryDate = entry.storyDate || entry.date
-                  if (!entryDate) {
-                    console.warn("Entry without date found:", entry)
-                    return null
-                  }
+                  if (!entryDate) return null
+                  
+                  const isEditing = editingId === entryDate
+
                   return (
-                    <Box key={entryDate} shadow="sm" gap={4} p={4} borderRadius="md" border="2px solid" borderColor="sage.500">
-                      <VStack align="start" gap={2} w="100%">
-                        {/* Judul (tanggal) */}
+                    <Box key={entryDate} shadow="sm" p={4} borderRadius="md" border="2px solid" borderColor="sage.500">
+                      <VStack align="start" gap={3} w="100%">
+                        {/* Date Header */}
                         <Text textStyle="headingHistoryList">
-                          {new Date(entryDate).toLocaleDateString("id-ID", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+                          {new Date(entryDate).toLocaleDateString("id-ID", { 
+                            weekday: "long", 
+                            year: "numeric", 
+                            month: "long", 
+                            day: "numeric" 
+                          })}
                         </Text>
+                        {isEditing ? (
+                          <VStack gap={4} align="stretch" w="100%">
+                            <Textarea value={editContent} onChange={(e) => setEditContent(e.target.value)} textStyle="contentHistoryList" color="white" autoresize autoFocus disabled={isSaving}/>
+                                                      
+                            <HStack gap={2} justify="center">
+                              <Button size="sm" variant="outline" onClick={() => handleSaveEdit(entryDate)} disabled={!editContent.trim() || isSaving} bg="bg.canvas" color="white" border="1px solid" borderColor="sage.500">
+                                <Save size={14} />
+                                {isSaving ? "Menyimpan..." : "Simpan"}
+                              </Button>
+                              <Button size="sm" variant="outline" onClick={cancelEdit} disabled={isSaving} border="1px solid" borderColor="sage.500">
+                                <X size={14} />
+                                Batal
+                              </Button>
+                            </HStack>
+                          </VStack>
+                        ) : (
+                          <VStack gap={3} align="stretch" w="100%">
+                            <Box rounded="md" p={3} border="1px solid" borderColor="sage.500" bg="bg.canvas">
+                              <Text textStyle="contentHistoryList" color="white" fontStyle="italic">
+                                &quot;{entry.content}&quot;
+                              </Text>
+                            </Box>
 
-                        {/* Isi catatan */}
-                        <Text textStyle="contentHistoryList" color="white">
-                          {entry.content}
-                        </Text>
-
-                        {/* Tombol/Modal */}
-                        <HistoryModal entry={entry} onSave={handleEntryUpdate} />
+                            <Center>
+                              <Button variant="outline" size="sm" onClick={() => startEdit(entry)} border="1px solid" borderColor="sage.500"textStyle="ButtonStoryBoxEdit">
+                                <Edit3 size={14} />
+                                Sunting
+                              </Button>
+                            </Center>
+                          </VStack>
+                        )}
                       </VStack>
                     </Box>
                   )
@@ -278,15 +389,13 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
               </VStack>
             ) : (
               <Box p={6} textAlign="center">
-                <Text>
+                <Text color="gray.500">
                   Belum ada catatan untuk bulan & tahun ini
                 </Text>
               </Box>
             )}
           </Box>
         </Box>
-
-        
       </VStack>
     </>
   )
