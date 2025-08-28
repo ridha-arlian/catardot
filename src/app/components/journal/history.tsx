@@ -244,7 +244,7 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
                 {/* Summary Info */}
                 {entries.length > 0 && !loading && (
                   <Box p={2} bg="bg.canvas" borderRadius="md" border="2px solid" borderColor="sage.500">
-                    <Text ftextStyle="summaryHistory" color="white">
+                    <Text textStyle="summaryHistory" color="white">
                       Total {entries.length} catatan di {monthNames[parseInt(selectedMonth) - 1]} {selectedYear}
                     </Text>
                   </Box>
