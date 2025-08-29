@@ -370,7 +370,7 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
                             return `${weekday}, ${datepart}`
                           })()}
                           {isTodayEntry && (
-                            <Badge ml={2} colorPalette="green">
+                            <Badge ml={1} colorPalette="green" mt="2">
                               Today
                             </Badge>
                           )}
