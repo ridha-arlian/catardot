@@ -1,13 +1,13 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client"
 
 import { useDebounce } from "use-debounce"
 import { monthNames } from "@/app/utils/month"
 import { toaster } from "@/components/ui/toaster"
 import { RefreshCw, Edit3, Save, X } from "lucide-react"
-import { useState, useEffect, useCallback } from "react"
-import { Box, VStack, HStack, Text, Portal, Select, createListCollection, Button, Skeleton, Separator, Textarea, Center } from "@chakra-ui/react"
+import { useState, useEffect, useCallback, useRef } from "react"
+import { Box, VStack, HStack, Text, Portal, Select, createListCollection, Button, Skeleton, Textarea, Center, Badge } from "@chakra-ui/react"
 
 interface JournalEntry {
   storyDate: string
@@ -52,14 +52,27 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
   const [debouncedYear] = useDebounce(selectedYear, 300)
   const [debouncedMonth] = useDebounce(selectedMonth, 300)
 
+  const isLoadingRef = useRef(false)
+  const lastRefreshTrigger = useRef(0)
+
   const fetchEntries = useCallback(async (forceRefresh = false) => {
     const key = `${debouncedYear}-${debouncedMonth}`
 
-    if (!forceRefresh && cache[key]) {
-      setEntries(cache[key])
+    if (isLoadingRef.current && !forceRefresh) {
+      console.log("Fetch already in progress, skipping...")
       return
     }
 
+    if (!forceRefresh) {
+      const cachedData = cache[key]
+      if (cachedData) {
+        console.log(`Using cached data for ${key}`)
+        setEntries(cachedData)
+        return
+      }
+    }
+
+    isLoadingRef.current = true
     setLoading(true)
     setError(null)
     
@@ -70,6 +83,8 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
       })
       
       if (forceRefresh) params.append('refresh', 'true')
+
+      console.log(`Fetching entries for ${debouncedMonth}/${debouncedYear}${forceRefresh ? ' (force)' : ''}`)
 
       const res = await fetch(`/api/story?${params}`, {
         credentials: "include"
@@ -87,17 +102,19 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
       
       entriesArray.sort((a, b) => new Date(b.storyDate).getTime() - new Date(a.storyDate).getTime())
       setEntries(entriesArray)
+      
       setCache(prev => ({ ...prev, [key]: entriesArray }))
-      console.log(`Fetched ${entriesArray.length} entries for ${debouncedMonth}/${debouncedYear}`)
+      console.log(`✅ Fetched ${entriesArray.length} entries for ${debouncedMonth}/${debouncedYear}`)
       
     } catch (err) {
-      console.error("Error fetching monthly entries:", err)
+      console.error("❌ Error fetching monthly entries:", err)
       setError(err instanceof Error ? err.message : "Failed to fetch entries")
       setEntries([])
     } finally {
       setLoading(false)
+      isLoadingRef.current = false
     }
-  }, [debouncedMonth, debouncedYear, cache])
+  }, [debouncedMonth, debouncedYear])
 
   const saveEntryToAPI = async (content: string, date: string) => {
     const response = await fetch("/api/story", {
@@ -127,7 +144,6 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
     }
 
     setIsSaving(true)
-    
     const savePromise = saveEntryToAPI(editContent, entryDate)
     
     toaster.promise(savePromise, {
@@ -150,25 +166,14 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
     try {
       await savePromise
       
-      // Update local state
-      setEntries(prev => prev.map(entry => 
-        (entry.storyDate === entryDate || entry.date === entryDate) 
-          ? { ...entry, content: editContent }
-          : entry
-      ))
+      setEntries(prev => prev.map(entry => (entry.storyDate === entryDate || entry.date === entryDate) ? { ...entry, content: editContent } : entry))
       
-      // Update cache
       const key = `${debouncedYear}-${debouncedMonth}`
       setCache(prev => ({
         ...prev,
-        [key]: prev[key]?.map(entry => 
-          (entry.storyDate === entryDate || entry.date === entryDate)
-            ? { ...entry, content: editContent }
-            : entry
-        ) || []
+        [key]: prev[key]?.map(entry => (entry.storyDate === entryDate || entry.date === entryDate) ? { ...entry, content: editContent } : entry) || []
       }))
       
-      // Exit edit mode
       setEditingId(null)
       setEditContent("")
       
@@ -195,49 +200,58 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
   }
 
   useEffect(() => {
+    console.log(`Month/Year changed: ${debouncedMonth}/${debouncedYear}`)
     fetchEntries()
   }, [debouncedMonth, debouncedYear, fetchEntries])
 
   useEffect(() => {
-    if (refreshTrigger && refreshTrigger > 0) {
-      console.log("Refresh trigger activated, force refreshing history")
-      fetchEntries(true)
+    if (refreshTrigger && refreshTrigger > 0 && refreshTrigger !== lastRefreshTrigger.current) {
+      console.log(`🔄 Refresh trigger activated: ${refreshTrigger}`)
+      lastRefreshTrigger.current = refreshTrigger
+      
+      const timeoutId = setTimeout(() => {
+        fetchEntries(true)
+      }, 100)
+      
+      return () => clearTimeout(timeoutId)
     }
   }, [refreshTrigger, fetchEntries])
 
-  const handleManualRefresh = () => {
-    console.log("Manual refresh triggered")
+  const handleManualRefresh = useCallback(() => {
+    if (isLoadingRef.current) {
+      console.log("Already refreshing, skipping manual refresh")
+      return
+    }
+    console.log("🔄 Manual refresh triggered")
     fetchEntries(true)
-  }
+  }, [fetchEntries])
 
-  const invalidateCurrentCache = () => {
+  const invalidateCurrentCache = useCallback(() => {
     const key = `${debouncedYear}-${debouncedMonth}`
     setCache(prev => {
       const newCache = { ...prev }
       delete newCache[key]
+      console.log(`🗑️  Cache invalidated for ${key}`)
       return newCache
     })
-    console.log(`Cache invalidated for ${key}`)
-  }
+  }, [debouncedYear, debouncedMonth])
 
   return (
     <>
       <VStack gap={6} align="stretch">
-        {/* Main Container */}
         <Box border="2px solid" borderColor="sage.500" borderRadius="md" bg="bg.canvas" shadow="sm" overflow="hidden">
-          {/* Filter Controls */}
           <Box p={4} borderBottom="2px solid" borderColor="sage.500" bg="bg.canvas">
             <HStack gap={3} justify="center">
-              {/* Select Bulan */}
               <Select.Root collection={monthCollection} size="sm" width="140px" value={[selectedMonth]} onValueChange={(val) => {
                 const newMonth = Array.isArray(val.value) ? val.value[0] : val.value
+                console.log(`Month changed to: ${newMonth}`)
                 setSelectedMonth(newMonth)
                 invalidateCurrentCache()
               }}>
                 <Select.HiddenSelect />
                 <Select.Control>
                   <Select.Trigger bg="bg.canvas" border="2px solid" borderColor="sage.500" textStyle="selectHistory">
-                    <Select.ValueText placeholder="Pilih Bulan" textStyle="selectHistory" />
+                    <Select.ValueText placeholder="Month" textStyle="selectHistory" />
                   </Select.Trigger>
                   <Select.IndicatorGroup>
                     <Select.Indicator />
@@ -259,16 +273,16 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
                 </Portal>
               </Select.Root>
 
-              {/* Select Tahun */}
               <Select.Root collection={yearCollection} size="sm" width="110px" value={[selectedYear]} onValueChange={(val) => {
                 const newYear = Array.isArray(val.value) ? val.value[0] : val.value
+                console.log(`Year changed to: ${newYear}`)
                 setSelectedYear(newYear)
                 invalidateCurrentCache()
               }}>
                 <Select.HiddenSelect />
                 <Select.Control>
                   <Select.Trigger bg="bg.canvas" border="2px solid" borderColor="sage.500" textStyle="selectHistory">
-                    <Select.ValueText placeholder="Tahun" textStyle="selectHistory" />
+                    <Select.ValueText placeholder="Year" textStyle="selectHistory" />
                   </Select.Trigger>
                   <Select.IndicatorGroup>
                     <Select.Indicator />
@@ -290,8 +304,7 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
                 </Portal>
               </Select.Root>
 
-              {/* Refresh Button */}
-              <Button size="sm" variant="outline" onClick={handleManualRefresh} disabled={loading} bg="bg.canvas" border="2px solid" borderColor="sage.500" px={3}>
+              <Button size="sm" variant="outline" onClick={handleManualRefresh} disabled={loading || isLoadingRef.current} bg="bg.canvas" border="2px solid" borderColor="sage.500" px={3}>
                 <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
               </Button>
             </HStack>
@@ -304,7 +317,7 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
                 Error: {error}
               </Text>
               <Button size="sm" mt={2} onClick={handleManualRefresh}>
-                Coba Lagi
+                Try Again
               </Button>
             </Box>
           )}
@@ -316,10 +329,10 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
                 {Array.from({ length: 5 }).map((_, index) => (
                   <Box key={index} w="100%" shadow="sm" p={4} borderRadius="md" border="2px solid" borderColor="sage.500">
                     <VStack align="start" gap={3}>
-                      <Skeleton height="20px" width="200px" />
-                      <Skeleton height="16px" width="100%" />
-                      <Skeleton height="16px" width="80%" />
-                      <Skeleton height="24px" width="60px" />
+                      <Skeleton height="20px" width="200px"/>
+                      <Skeleton height="16px" width="100%"/>
+                      <Skeleton height="16px" width="80%"/>
+                      <Skeleton height="24px" width="60px"/>
                     </VStack>
                   </Box>
                 ))}
@@ -329,28 +342,40 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
                 {/* Summary Info */}
                 <Box p={2} bg="bg.canvas" borderRadius="md" border="2px solid" borderColor="sage.500">
                   <Text textStyle="summaryHistory" color="white">
-                    Total {entries.length} catatan di {monthNames[parseInt(selectedMonth) - 1]} {selectedYear}
+                    Total {entries.length} stories in {monthNames[parseInt(selectedMonth) - 1]} {selectedYear}
                   </Text>
                 </Box>
 
                 {entries.map((entry) => {
                   const entryDate = entry.storyDate || entry.date
                   if (!entryDate) return null
-                  
+                
                   const isEditing = editingId === entryDate
+                  const today = new Date()
+                  const entryDateObj = new Date(entryDate)
+                  const isTodayEntry = entryDateObj.toDateString() === today.toDateString()
 
                   return (
                     <Box key={entryDate} shadow="sm" p={4} borderRadius="md" border="2px solid" borderColor="sage.500">
                       <VStack align="start" gap={3} w="100%">
-                        {/* Date Header */}
                         <Text textStyle="headingHistoryList">
-                          {new Date(entryDate).toLocaleDateString("id-ID", { 
-                            weekday: "long", 
-                            year: "numeric", 
-                            month: "long", 
-                            day: "numeric" 
-                          })}
+                          {(() => {
+                            const date = new Date(entryDate)
+                            const weekday = date.toLocaleDateString("en-GB", { weekday: "long" })
+                            const datepart = date.toLocaleDateString("en-GB", { 
+                              year: "numeric", 
+                              month: "long", 
+                              day: "numeric" 
+                            })
+                            return `${weekday}, ${datepart}`
+                          })()}
+                          {isTodayEntry && (
+                            <Badge ml={2} colorPalette="green">
+                              Today
+                            </Badge>
+                          )}
                         </Text>
+                        
                         {isEditing ? (
                           <VStack gap={4} align="stretch" w="100%">
                             <Textarea value={editContent} onChange={(e) => setEditContent(e.target.value)} textStyle="contentHistoryList" color="white" autoresize autoFocus disabled={isSaving}/>
@@ -362,7 +387,7 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
                               </Button>
                               <Button size="sm" variant="outline" onClick={cancelEdit} disabled={isSaving} border="1px solid" borderColor="sage.500">
                                 <X size={14} />
-                                Batal
+                                Cancel
                               </Button>
                             </HStack>
                           </VStack>
@@ -375,10 +400,16 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
                             </Box>
 
                             <Center>
-                              <Button variant="outline" size="sm" onClick={() => startEdit(entry)} border="1px solid" borderColor="sage.500"textStyle="ButtonStoryBoxEdit">
-                                <Edit3 size={14} />
-                                Sunting
-                              </Button>
+                              {!isTodayEntry ? (
+                                <Button variant="outline" size="sm" onClick={() => startEdit(entry)} border="1px solid" borderColor="sage.500" textStyle="ButtonStoryBoxEdit">
+                                  <Edit3 size={14} />
+                                  Edit
+                                </Button>
+                              ) : (
+                                <Text fontSize="xs" color="gray.400" textAlign="center">
+                                  Edit in the main box for today&apos;s story
+                                </Text>
+                              )}
                             </Center>
                           </VStack>
                         )}
@@ -390,7 +421,7 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
             ) : (
               <Box p={6} textAlign="center">
                 <Text color="gray.500">
-                  Belum ada catatan untuk bulan & tahun ini
+                  No stories for this month and year
                 </Text>
               </Box>
             )}

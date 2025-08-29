@@ -1,21 +1,39 @@
 "use client"
 
-import { Box, VStack, Text } from "@chakra-ui/react"
+import { Githubicons, Linkedinicons } from "@/components/icons/iconsDarkMode"
+import { Box, Container, Flex, HStack, Link, Text } from "@chakra-ui/react"
+import { Mail } from "lucide-react"
+import { useState, useEffect } from "react"
 
-export const Footer = ()  => {
+export const Footer = () => {
+  const [year, setYear] = useState<number | null>(null)
+
+  useEffect(() => {
+    setYear(new Date().getFullYear())
+  }, [])
+
   return (
     <>
-      <Box as="footer" borderTopWidth={1} borderColor="gray.200" bg="bg.canvas">
-        <Box maxW="4xl" mx="auto" px={6} py={8}>
-          <VStack gap={2} textAlign="center">
-            <Text fontSize="sm" color="gray.500">
-              Inspired by <b>Matthew Dicks&apos;</b> Homework for Life method
+      <Box as="footer" borderTop="1px solid" borderColor="sage.500" bg="bg.canvas">
+        <Container maxW="container.xl" py={6} px={4}>
+          <Flex direction={{ base: "column", sm: "row" }} align="center" justify="space-between" gap={{ base: 4, sm: 0 }}>
+            <Text textStyle="textFooter" color="fg.muted">
+              {year ? `© ${year} Ridha Arlian.` : null}
             </Text>
-            <Text fontSize="xs" color="gray.500">
-              &quot;The goal is to notice and remember one thing every day that is worth remembering.&quot;
-            </Text>
-          </VStack>
-        </Box>
+
+            <HStack gap={4}>
+              <Link target="_blank" rel="noopener noreferrer" href="https://github.com/ridha-arlian" aria-label="GitHub" _hover={{ color: "fg.default" }}>
+                <Githubicons boxSize={6} />
+              </Link>
+              <Link target="_blank" rel="noopener noreferrer" href="https://linkedin.com/in/ridha-arlian" aria-label="LinkedIn" _hover={{ color: "fg.default" }}>
+                <Linkedinicons boxSize={6} />
+              </Link>
+              <Link target="_blank" rel="noopener noreferrer" href="mailto:ridhaarlian@proton.me" aria-label="Email" color="fg.muted" _hover={{ color: "fg.default" }}>
+                <Mail size={24} />
+              </Link>
+            </HStack>
+          </Flex>
+        </Container>
       </Box>
     </>
   )

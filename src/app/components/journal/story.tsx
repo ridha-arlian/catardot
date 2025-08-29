@@ -54,7 +54,7 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
     })
 
     const data = await response.json()
-    if (!response.ok) throw new Error(data.error || "Gagal menyimpan catatan")
+    if (!response.ok) throw new Error(data.error || "Failed to save story")
     return data
   }
 
@@ -98,8 +98,8 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
 
   const showEmptyContentWarning = () => {
     toaster.create({
-      title: "Catatan Kosong",
-      description: "Mohon isi catatan terlebih dahulu",
+      title: "Empty Story",
+      description: "Please write something before saving your story",
       type: "warning",
       duration: 5000,
       closable: true,
@@ -110,19 +110,19 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
     return toaster.promise(savePromise, {
       success: {
         title: successTitle,
-        description: successTitle.includes("Draft") ? "Catatan Anda telah tersimpan sementara" : "Cerita Anda telah tersimpan dengan baik",
+        description: successTitle.includes("Draft") ? "Your draft has been saved" : "Your story has been saved successfully",
         duration: 5000,
         closable: true,
       },
       error: {
-        title: successTitle.includes("Draft") ? "Gagal Menyimpan Catatan Sementara" : "Gagal Menyimpan Catatan",
-        description: successTitle.includes("Draft") ? "Terjadi kesalahan saat menyimpan catatan sementara" : "Terjadi kesalahan saat menyimpan. Silakan coba lagi",
+        title: successTitle.includes("Draft") ? "Failed to Save Draft" : "Failed to Save Story",
+        description: successTitle.includes("Draft") ? "An error occurred while saving your draft" : "An error occurred while saving. Please try again",
         duration: 5000,
         closable: true,
       },
       loading: {
         title: loadingTitle,
-        description: loadingTitle.includes("Draft") ? "Sedang menyimpan catatan sementara Anda" : "Sedang menyimpan catatan Anda"
+        description: loadingTitle.includes("Draft") ? "Saving your draft..." : "Saving your story..."
       },
     })
   }
@@ -138,8 +138,8 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
     
     createToasterPromise(
       savePromise,
-      isUpdate ? "Catatan Berhasil Diperbarui!" : "Catatan Berhasil Disimpan!",
-      "Menyimpan..."
+      isUpdate ? "Story Updated Successfully!" : "Story Saved Successfully!",
+      "Saving..."
     )
 
     try {
@@ -167,15 +167,15 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
   const handleSaveDraft = async () => {
     if (!storyContent.trim()) {
       toaster.create({
-        title: "Content Kosong",
-        description: "Tidak ada content untuk disimpan sebagai catatan sementara",
+        title: "Empty Content",
+        description: "Nothing to save as draft",
         type: "warning",
       })
       return
     }
 
     const saveDraftPromise = saveStoryToAPI(storyContent, selectedDate)
-    createToasterPromise(saveDraftPromise, "Catatan Disimpan Sementara!", "Menyimpan Catatan...")
+    createToasterPromise(saveDraftPromise, "Draft Saved!", "Saving Draft...")
 
     try {
       const result = await saveDraftPromise
@@ -319,7 +319,7 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
                   <VStack gap={4} align="center">
                     <Textarea textStyle="placeholderStoryBoxEdit" placeholder={prompts.promptContent} value={storyContent} onChange={(e) => setStoryContent(e.target.value)} minH="120px" disabled={existingJournal} autoresize/>
                     <Button textStyle="ButtonStoryBoxEdit" onClick={handleSaveStory} disabled={!storyContent.trim() || existingJournal || isCheckingExisting}>
-                      {existingJournal ? "Catatan Sudah Ada" : "Save Today\'s Sentence"}
+                      {existingJournal ? "Story Already Exists" : "Save Today\s Story"}
                     </Button>
                     
                     <Button variant="outline" textStyle="placeholderStoryBoxEdit" onClick={handleSaveDraft} disabled={!storyContent.trim() || existingJournal || isCheckingExisting}>
@@ -331,7 +331,7 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
                 <VStack gap={6} align="stretch">
                   <VStack gap={3} textAlign="center">
                     <Heading textStyle="headingTextStoryBoxEdit">
-                      Today&apos;s Entry Complete
+                      Today&apos;s Story Complete
                     </Heading>
                     <Text color="gray.500" textStyle="subHeadingTextStoryBoxEdit">
                       You&apos;ve captured today&apos;s moment.<br/>See you tomorrow!
@@ -344,7 +344,7 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
 
                   <Center>
                     <Button variant="outline" textStyle="ButtonStoryBoxEdit" border="1px solid" borderColor="sage.500" onClick={editTodayEntry}>
-                      Edit Today&apos;s Entry
+                      Edit Today&apos;s Story
                     </Button>
                   </Center>
                 </VStack>
@@ -356,7 +356,7 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
           <Box display={{ base: "block", md: "none" }} mb={6}>
             <Button width="100%" border="2px solid" borderColor="sage.500" shadow="sm" variant="outline" onClick={() => setShowPastEntries(!showPastEntries)} textStyle="buttonHistory">
               <BookOpen size={20} />
-              {showPastEntries ? "Hide Past Entries" : "View Past Entries"}
+              {showPastEntries ? "Hide Past Stories" : "View Past Stories"}
             </Button>
           </Box>
           
@@ -376,7 +376,7 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
               <AnimatePresence>
                 {open && (
                   <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.1 }} style={{ marginLeft: "8px", whiteSpace: "nowrap" }}>
-                    {journalStatus ? "Bagus, kamu sudah menulis hari ini." : "Belum terlambat, ayo tulis cerita."}
+                    {journalStatus ? "Great, you've already written today." : "It's not too late, write your story now."}
                   </motion.div>
                 )}
               </AnimatePresence>

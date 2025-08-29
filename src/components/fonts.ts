@@ -375,4 +375,18 @@ export const textStyles = defineTextStyles({
       textTransform: "none",
     },
   },
+
+  // Footer
+  textFooter:{
+    description: "For Sub Heading Text in Story Box",
+    value: {
+      fontFamily: "var(--font-quicksand)",
+      fontWeight: "600",
+      fontSize: { base: "14px", sm: "12px", md: "16px", lg: "16px", xl: "14px" },
+      lineHeight: "20px",
+      letterSpacing: "0px",
+      textDecoration: "none",
+      textTransform: "none",
+    },
+  },
 })
