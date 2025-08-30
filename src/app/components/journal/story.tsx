@@ -3,9 +3,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef, useCallback } from "react"
 import { useSession } from "next-auth/react"
-import { BookOpen, Sparkles } from "lucide-react"
+import { BookOpen } from "lucide-react"
 import { toaster } from "@/components/ui/toaster"
 import { getRandomPrompts } from "@/app/utils/prompt"
 import { motion, AnimatePresence } from "framer-motion"
@@ -31,10 +31,13 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
   const [existingJournal, setExistingJournal] = useState<any>(null)
   const [isCheckingExisting, setIsCheckingExisting] = useState(false)
   const [journalStatus, setJournalStatus] = useState<boolean | null>(null)
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const [supabase] = useState(() => createClient())
   const [isSettingUpSpreadsheet, setIsSettingUpSpreadsheet] = useState(false)
   const hasWrittenToday = Boolean(existingJournal)
+
+  const setupAttempted = useRef(false)
+  const setupInProgress = useRef(false)
 
   const { open, onToggle } = useDisclosure()
 
@@ -204,6 +207,59 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
     setStoryContent(todayEntry || "")
   }
 
+  const setupSpreadsheet = async () => {
+    // Prevent multiple simultaneous calls
+    if (setupInProgress.current || setupAttempted.current) {
+      console.log("Setup already in progress or attempted, skipping...")
+      return
+    }
+
+    setupInProgress.current = true
+    setIsSettingUpSpreadsheet(true)
+    
+    try {
+      console.log("Setting up spreadsheet for user:", session?.user?.email)
+      
+      const response = await fetch("/api/sheets", { 
+        method: "POST",
+        credentials: "include"
+      })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
+      const data = await response.json()
+      
+      if (data.spreadsheetId) {
+        console.log("Spreadsheet setup successful:", data.spreadsheetId)
+        setupAttempted.current = true
+        
+        toaster.create({
+          title: "Journal Ready!",
+          description: "Your personal journal spreadsheet has been created.",
+          type: "success",
+          duration: 5000,
+          closable: true,
+        })
+      }
+    } catch (error) {
+      console.error("Setup failed:", error)
+      setupInProgress.current = false // Reset on error to allow retry
+      
+      toaster.create({
+        title: "Setup Failed",
+        description: "There was an issue setting up your journal. Please try again.",
+        type: "error",
+        duration: 5000,
+        closable: true,
+      })
+    } finally {
+      setIsSettingUpSpreadsheet(false)
+      setupInProgress.current = false
+    }
+  }
+
   useEffect(() => {
     if (session?.supabaseAccessToken) {
       setSupabaseAuth(supabase, session.supabaseAccessToken)
@@ -228,36 +284,66 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
   }, [selectedDate, session?.user?.spreadsheetId, session?.accessToken])
   
   useEffect(() => {
-    const setupSpreadsheet = async () => {
-      if (session?.user?.email && !session.user.spreadsheetId && !isSettingUpSpreadsheet) {
-        setIsSettingUpSpreadsheet(true)
-        try {
-          const response = await fetch("/api/sheets", { method: "POST" })
-          const data = await response.json()
-          
-          if (data.spreadsheetId) {
-            console.log("Spreadsheet ready:", data.spreadsheetId)
-            toaster.create({
-              title: "Journal Ready!",
-              description: "Your personal journal spreadsheet has been created.",
-              type: "success"
-            })
-          }
-        } catch (error) {
-          console.error("Setup failed:", error)
-          toaster.create({
-            title: "Setup Failed",
-            description: "There was an issue setting up your journal. Please try again.",
-            type: "error"
-          })
-        } finally {
-          setIsSettingUpSpreadsheet(false)
-        }
-      }
+    // Only run when:
+    // 1. Session is loaded and authenticated
+    // 2. User exists and has email
+    // 3. User doesn't have spreadsheetId yet
+    // 4. Setup hasn't been attempted yet
+    // 5. Not currently setting up
+    if (
+      status === "authenticated" &&
+      session?.user?.email && 
+      !session.user.spreadsheetId && 
+      !setupAttempted.current &&
+      !isSettingUpSpreadsheet
+    ) {
+      console.log("Conditions met for spreadsheet setup, initiating...")
+      setupSpreadsheet()
     }
+  }, [status, session?.user?.spreadsheetId]) // Remove email and isSettingUpSpreadsheet from deps
 
-    if (session?.user) { setupSpreadsheet() }
-  }, [session, isSettingUpSpreadsheet])
+  // Reset setup tracking when session changes (e.g., login/logout)
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      setupAttempted.current = false
+      setupInProgress.current = false
+    }
+  }, [status])
+
+  // useEffect(() => {
+  //   const setupSpreadsheet = async () => {
+  //     if (session?.user?.email && !session.user.spreadsheetId && !isSettingUpSpreadsheet) {
+  //       setIsSettingUpSpreadsheet(true)
+  //       try {
+  //         const response = await fetch("/api/sheets", { method: "POST" })
+  //         const data = await response.json()
+          
+  //         if (data.spreadsheetId) {
+  //           console.log("Spreadsheet ready:", data.spreadsheetId)
+  //           toaster.create({
+  //             title: "Journal Ready!",
+  //             description: "Your personal journal spreadsheet has been created.",
+  //             type: "success"
+  //           })
+  //         }
+  //       } catch (error) {
+  //         console.error("Setup failed:", error)
+  //         toaster.create({
+  //           title: "Setup Failed",
+  //           description: "There was an issue setting up your journal. Please try again.",
+  //           type: "error"
+  //         })
+  //       } finally {
+  //         setIsSettingUpSpreadsheet(false)
+  //       }
+  //     } else if (session?.user?.email && session.user.spreadsheetId) {
+  //         console.log("Spreadsheet sudah ada, tidak perlu dibuat lagi")
+  //     }
+  //   }
+
+  //   if (session?.user) { setupSpreadsheet() }
+  // }, [session, isSettingUpSpreadsheet])
+  
 
   if (isSettingUpSpreadsheet) {
     return (

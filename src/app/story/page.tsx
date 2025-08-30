@@ -11,7 +11,6 @@ export default async function StoryPage() {
   if (!session?.user) {
     redirect("/not-authorized")
   }
-
   return (
     <>
       <Box minH="50vh" bg="bg.canvas" py={2} overflow="hidden">
