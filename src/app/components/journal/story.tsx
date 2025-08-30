@@ -20,7 +20,7 @@ const MotionBox = motion.create(Box)
 interface StoryProps { onJournalSaved?: (journalData: any) => void }
 
 export const Story = ({ onJournalSaved }: StoryProps) => {
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
   const [todayEntry, setTodayEntry] = useState("")
   const [selectedDate, setSelectedDate] = useState("")
   const [storyContent, setStoryContent] = useState("")
@@ -34,6 +34,7 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
   const { data: session, status } = useSession()
   const [supabase] = useState(() => createClient())
   const [isSettingUpSpreadsheet, setIsSettingUpSpreadsheet] = useState(false)
+  const [isSpreadsheetReady, setIsSpreadsheetReady] = useState(false)
   const hasWrittenToday = Boolean(existingJournal)
 
   const setupAttempted = useRef(false)
@@ -234,6 +235,7 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
       if (data.spreadsheetId) {
         console.log("Spreadsheet setup successful:", data.spreadsheetId)
         setupAttempted.current = true
+        setIsSpreadsheetReady(true)
         
         toaster.create({
           title: "Journal Ready!",
@@ -283,13 +285,68 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
     }
   }, [selectedDate, session?.user?.spreadsheetId, session?.accessToken])
   
+  // useEffect(() => {
+  //   // Only run when:
+  //   // 1. Session is loaded and authenticated
+  //   // 2. User exists and has email
+  //   // 3. User doesn't have spreadsheetId yet
+  //   // 4. Setup hasn't been attempted yet
+  //   // 5. Not currently setting up
+  //   if (
+  //     status === "authenticated" &&
+  //     session?.user?.email && 
+  //     !session.user.spreadsheetId && 
+  //     !setupAttempted.current &&
+  //     !isSettingUpSpreadsheet
+  //   ) {
+  //     console.log("Conditions met for spreadsheet setup, initiating...")
+  //     setupSpreadsheet()
+  //   }
+  // }, [status, session?.user?.spreadsheetId]) // Remove email and isSettingUpSpreadsheet from deps
+
+  // // Reset setup tracking when session changes (e.g., login/logout)
+  // useEffect(() => {
+  //   if (status === "unauthenticated") {
+  //     setupAttempted.current = false
+  //     setupInProgress.current = false
+  //   }
+  // }, [status])  
+
+  // if (isSettingUpSpreadsheet) {
+  //   return (
+  //     <Center minH="200px">
+  //       <VStack gap={4}>
+  //         <Skeleton height="20px" width="200px" border="1px solid" borderColor="gray.600"/>
+  //         <Text>
+  //           Setting up your journal...
+  //         </Text>
+  //       </VStack>
+  //     </Center>
+  //   )
+  // }
+
+    // Modified: Check spreadsheet readiness
   useEffect(() => {
-    // Only run when:
-    // 1. Session is loaded and authenticated
-    // 2. User exists and has email
-    // 3. User doesn't have spreadsheetId yet
-    // 4. Setup hasn't been attempted yet
-    // 5. Not currently setting up
+    if (status === "authenticated") {
+      if (session?.user?.spreadsheetId) {
+        // User already has spreadsheet
+        setIsSpreadsheetReady(true)
+      } else {
+        // User needs spreadsheet setup
+        setIsSpreadsheetReady(false)
+      }
+    }
+  }, [status, session?.user?.spreadsheetId])
+
+  // Modified: Check existing journal only when spreadsheet is ready
+  useEffect(() => {
+    if (selectedDate && isSpreadsheetReady && session?.accessToken) {
+      checkExistingJournal(selectedDate)
+    }
+  }, [selectedDate, isSpreadsheetReady, session?.accessToken])
+  
+  // Modified: Setup spreadsheet logic
+  useEffect(() => {
     if (
       status === "authenticated" &&
       session?.user?.email && 
@@ -300,51 +357,17 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
       console.log("Conditions met for spreadsheet setup, initiating...")
       setupSpreadsheet()
     }
-  }, [status, session?.user?.spreadsheetId]) // Remove email and isSettingUpSpreadsheet from deps
+  }, [status, session?.user?.spreadsheetId, session?.user?.email])
 
-  // Reset setup tracking when session changes (e.g., login/logout)
   useEffect(() => {
     if (status === "unauthenticated") {
       setupAttempted.current = false
       setupInProgress.current = false
+      setIsSpreadsheetReady(false)
     }
-  }, [status])
+  }, [status])  
 
-  // useEffect(() => {
-  //   const setupSpreadsheet = async () => {
-  //     if (session?.user?.email && !session.user.spreadsheetId && !isSettingUpSpreadsheet) {
-  //       setIsSettingUpSpreadsheet(true)
-  //       try {
-  //         const response = await fetch("/api/sheets", { method: "POST" })
-  //         const data = await response.json()
-          
-  //         if (data.spreadsheetId) {
-  //           console.log("Spreadsheet ready:", data.spreadsheetId)
-  //           toaster.create({
-  //             title: "Journal Ready!",
-  //             description: "Your personal journal spreadsheet has been created.",
-  //             type: "success"
-  //           })
-  //         }
-  //       } catch (error) {
-  //         console.error("Setup failed:", error)
-  //         toaster.create({
-  //           title: "Setup Failed",
-  //           description: "There was an issue setting up your journal. Please try again.",
-  //           type: "error"
-  //         })
-  //       } finally {
-  //         setIsSettingUpSpreadsheet(false)
-  //       }
-  //     } else if (session?.user?.email && session.user.spreadsheetId) {
-  //         console.log("Spreadsheet sudah ada, tidak perlu dibuat lagi")
-  //     }
-  //   }
-
-  //   if (session?.user) { setupSpreadsheet() }
-  // }, [session, isSettingUpSpreadsheet])
-  
-
+  // Show loading skeleton only during spreadsheet setup
   if (isSettingUpSpreadsheet) {
     return (
       <Center minH="200px">
@@ -353,6 +376,22 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
           <Text>
             Setting up your journal...
           </Text>
+        </VStack>
+      </Center>
+    )
+  }
+
+  // Show message if spreadsheet is not ready
+  if (status === "authenticated" && !isSpreadsheetReady && !isSettingUpSpreadsheet) {
+    return (
+      <Center minH="200px">
+        <VStack gap={4}>
+          <Text>
+            Preparing your journal space...
+          </Text>
+          <Button onClick={setupSpreadsheet} disabled={setupInProgress.current}>
+            Retry Setup
+          </Button>
         </VStack>
       </Center>
     )
