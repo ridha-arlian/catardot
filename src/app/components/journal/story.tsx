@@ -1,3 +1,463 @@
+// /* eslint-disable @typescript-eslint/no-unused-vars */
+// /* eslint-disable react-hooks/exhaustive-deps */
+// /* eslint-disable @typescript-eslint/no-explicit-any */
+// "use client"
+
+// import { useEffect, useState, useRef } from "react"
+// import { useSession } from "next-auth/react"
+// import { BookOpen } from "lucide-react"
+// import { toaster } from "@/components/ui/toaster"
+// import { getRandomPrompts } from "@/app/utils/prompt"
+// import { motion, AnimatePresence } from "framer-motion"
+// import { History } from "@/app/components/journal/history"
+// import { TimeWidget } from "@/app/components/journal/timeWidget"
+// import { StatusWidget } from "@/app/components/journal/statusWidget"
+// import { createClient, setSupabaseAuth } from "@/utils/supabase/supabase.client"
+// import { Box, VStack, HStack, Heading, Text, Button, Textarea, Center, Skeleton, useDisclosure, SkeletonCircle } from "@chakra-ui/react"
+
+// const MotionBox = motion.create(Box)
+
+// interface StoryProps { onJournalSaved?: (journalData: any) => void }
+
+// export const Story = ({ onJournalSaved }: StoryProps) => {
+//   const [isLoading, setIsLoading] = useState(false)
+//   const [todayEntry, setTodayEntry] = useState("")
+//   const [selectedDate, setSelectedDate] = useState("")
+//   const [storyContent, setStoryContent] = useState("")
+//   const [refreshTrigger, setRefreshTrigger] = useState(0)
+//   const [lastCheckedDate, setLastCheckedDate] = useState("")
+//   const [prompts, setPrompts] = useState({ promptContent: "" })
+//   const [showPastEntries, setShowPastEntries] = useState(false)
+//   const [existingJournal, setExistingJournal] = useState<any>(null)
+//   const [isCheckingExisting, setIsCheckingExisting] = useState(false)
+//   const [journalStatus, setJournalStatus] = useState<boolean | null>(null)
+//   const { data: session, status } = useSession()
+//   const [supabase] = useState(() => createClient())
+//   const [isSettingUpSpreadsheet, setIsSettingUpSpreadsheet] = useState(false)
+//   const [isSpreadsheetReady, setIsSpreadsheetReady] = useState(false)
+//   const hasWrittenToday = Boolean(existingJournal)
+//   const [spreadsheetCreatedTrigger, setSpreadsheetCreatedTrigger] = useState(0)
+
+//   const setupAttempted = useRef(false)
+//   const setupInProgress = useRef(false)
+
+//   const { open, onToggle } = useDisclosure()
+
+//   const refreshPrompts = () => setPrompts(getRandomPrompts())
+
+//   const saveStoryToAPI = async (content: string, date: string, method: "POST" | "PUT" = "POST") => {
+//     if (!session) throw new Error("User not authenticated")
+
+//     const response = await fetch("/api/story", {
+//       method: "POST",
+//       headers: { "Content-Type": "application/json" },
+//       body: JSON.stringify({ 
+//         content,
+//         storyDate: date
+//       }),
+//       credentials: "include"
+//     })
+
+//     const data = await response.json()
+//     if (!response.ok) throw new Error(data.error || "Failed to save story")
+//     return data
+//   }
+
+//   const checkExistingJournal = async (date: string) => {
+//     if (!session) throw new Error("User not authenticated")
+//     if (!date) return { exists: false }
+
+//     setIsCheckingExisting(true)
+//     setIsLoading(true)
+
+//     try {
+//       const response = await fetch(`/api/story?storyDate=${date}`, { credentials: "include" })
+//       if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`) }
+//       const data = await response.json()
+
+//       if (data && data.content) {
+//         setExistingJournal({ storyDate: date })
+//         setTodayEntry(data.content)
+//         setStoryContent(data.content)
+//       } else {
+//         setExistingJournal(null)
+//         setTodayEntry("")
+//         setStoryContent("")
+//       }
+//       setLastCheckedDate(date)
+//     } catch (error) {
+//       console.error("Error checking existing journal:", error)
+//       setExistingJournal(null)
+//       setTodayEntry("")
+//       setStoryContent("")
+//     } finally {
+//       setIsCheckingExisting(false)
+//       setIsLoading(false)
+//     }
+//   }
+
+//   const triggerGlobalRefresh = () => {
+//     setRefreshTrigger((prev) => prev + 1)
+//     console.log("Story component triggering global refresh")
+//   }
+
+//   const showEmptyContentWarning = () => {
+//     toaster.create({
+//       title: "Empty Story",
+//       description: "Please write something before saving your story",
+//       type: "warning",
+//       duration: 5000,
+//       closable: true,
+//     })
+//   }
+
+//   const createToasterPromise = (savePromise: Promise<any>, successTitle: string, loadingTitle: string) => {
+//     return toaster.promise(savePromise, {
+//       success: {
+//         title: successTitle,
+//         description: successTitle.includes("Draft") ? "Your draft has been saved" : "Your story has been saved successfully",
+//         duration: 5000,
+//         closable: true,
+//       },
+//       error: {
+//         title: successTitle.includes("Draft") ? "Failed to Save Draft" : "Failed to Save Story",
+//         description: successTitle.includes("Draft") ? "An error occurred while saving your draft" : "An error occurred while saving. Please try again",
+//         duration: 5000,
+//         closable: true,
+//       },
+//       loading: {
+//         title: loadingTitle,
+//         description: loadingTitle.includes("Draft") ? "Saving your draft..." : "Saving your story..."
+//       },
+//     })
+//   }
+
+//   const handleSaveStory = async () => {
+//     if (!storyContent.trim() || !selectedDate) {
+//       showEmptyContentWarning()
+//       return
+//     }
+
+//     const isUpdate = Boolean(existingJournal)
+//     const savePromise = saveStoryToAPI(storyContent, selectedDate)
+    
+//     createToasterPromise(
+//       savePromise,
+//       isUpdate ? "Story Updated Successfully!" : "Story Saved Successfully!",
+//       "Saving..."
+//     )
+
+//     try {
+//       const result = await savePromise
+      
+//       setExistingJournal({ storyDate: selectedDate })
+//       setTodayEntry(storyContent)
+//       setLastCheckedDate("")
+      
+//       if (!isUpdate) {
+//         setStoryContent("")
+//         refreshPrompts()
+//       }
+      
+//       onJournalSaved?.(result)
+//       triggerGlobalRefresh()
+      
+//       console.log(`Journal ${isUpdate ? 'updated' : 'saved'} successfully: `, result)
+      
+//     } catch (error) {
+//       console.error("Error saving story: ", error)
+//     }
+//   }
+
+//   // const handleSaveDraft = async () => {
+//   //   if (!storyContent.trim()) {
+//   //     toaster.create({
+//   //       title: "Empty Content",
+//   //       description: "Nothing to save as draft",
+//   //       type: "warning",
+//   //     })
+//   //     return
+//   //   }
+
+//   //   const saveDraftPromise = saveStoryToAPI(storyContent, selectedDate)
+//   //   createToasterPromise(saveDraftPromise, "Draft Saved!", "Saving Draft...")
+
+//   //   try {
+//   //     const result = await saveDraftPromise
+//   //     console.log("Draft saved: ", result)
+      
+//   //     setExistingJournal({ storyDate: selectedDate })
+//   //     setTodayEntry(storyContent)
+//   //     triggerGlobalRefresh()
+      
+//   //   } catch (error) {
+//   //     console.error("Error saving draft:", error)
+//   //   }
+//   // }
+
+//   // const handleContinueDraft = () => {
+//   //   toaster.create({
+//   //     title: "Fitur Segera Hadir",
+//   //     description: "Fitur Teruskan Menulis akan segera tersedia!",
+//   //     type: "info",
+//   //   })
+//   // }
+
+//   const editTodayEntry = () => {
+//     setExistingJournal(null)
+//     setTodayEntry("")
+//     setStoryContent(todayEntry || "")
+//   }
+
+//   const setupSpreadsheet = async () => {
+//     if (setupInProgress.current) {
+//       console.log("Setup already in progress, skipping...")
+//       return
+//     }
+
+//     setupInProgress.current = true
+    
+//     const setupPromise = (async () => {
+//       console.log("Setting up spreadsheet for user:", session?.user?.email)
+      
+//       const response = await fetch("/api/sheets", { 
+//         method: "POST",
+//         credentials: "include"
+//       })
+      
+//       if (!response.ok) {
+//         throw new Error(`HTTP error! status: ${response.status}`)
+//       }
+      
+//       const data = await response.json()
+      
+//       if (!data.spreadsheetId) {
+//         throw new Error("No spreadsheet ID returned")
+//       }
+      
+//       console.log("Spreadsheet setup successful:", data.spreadsheetId)
+//       setupAttempted.current = true
+//       setIsSpreadsheetReady(true)
+
+//       setSpreadsheetCreatedTrigger(prev => prev + 1)
+      
+//       return data
+//     })()
+
+//     toaster.promise(setupPromise, {
+//       success: {
+//         title: "Journal Ready!",
+//         description: "Your personal journal spreadsheet has been created successfully.",
+//         duration: 5000,
+//         closable: true,
+//       },
+//       error: {
+//         title: "Setup Failed",
+//         description: "There was an issue setting up your journal.",
+//         duration: 10000,
+//         closable: true,
+//         action: {
+//           label: "Retry Setup",
+//           onClick: () => {
+//             setupAttempted.current = false
+//             setupInProgress.current = false
+//             setupSpreadsheet()
+//           }
+//         }
+//       },
+//       loading: {
+//         title: "Setting Up Your Journal",
+//         description: "Creating your personal journal space..."
+//       },
+//     })
+
+//     try {
+//       await setupPromise
+//     } catch (error) {
+//       console.error("Setup failed:", error)
+//       setupInProgress.current = false
+//     } finally {
+//       setupInProgress.current = false
+//     }
+//   }
+
+//   useEffect(() => {
+//     if (session?.supabaseAccessToken) {
+//       setSupabaseAuth(supabase, session.supabaseAccessToken)
+//     }
+//   }, [session, supabase])
+  
+//   useEffect(() => {
+//     if (refreshTrigger > 0 && selectedDate) {
+//       console.log("Refresh trigger detected, re-checking existing journal")
+//       checkExistingJournal(selectedDate)
+//     }
+//   }, [refreshTrigger])
+
+//   useEffect(() => {
+//     refreshPrompts()
+//   }, [])
+
+//   useEffect(() => {
+//     if (selectedDate && session?.user?.spreadsheetId && session?.accessToken) {
+//       checkExistingJournal(selectedDate)
+//     }
+//   }, [selectedDate, session?.user?.spreadsheetId, session?.accessToken])
+  
+//   useEffect(() => {
+//     if (status === "authenticated") {
+//       if (session?.user?.spreadsheetId) {
+//         setIsSpreadsheetReady(true)
+//       } else {
+//         setIsSpreadsheetReady(false)
+//       }
+//     }
+//   }, [status, session?.user?.spreadsheetId])
+
+//   useEffect(() => {
+//     if (selectedDate && isSpreadsheetReady && session?.accessToken) {
+//       checkExistingJournal(selectedDate)
+//     }
+//   }, [selectedDate, isSpreadsheetReady, session?.accessToken])
+  
+//   useEffect(() => {
+//     if (
+//       status === "authenticated" &&
+//       session?.user?.email && 
+//       !session.user.spreadsheetId && 
+//       !setupAttempted.current &&
+//       !isSettingUpSpreadsheet
+//     ) {
+//       console.log("Conditions met for spreadsheet setup, initiating...")
+//       setupSpreadsheet()
+//     }
+//   }, [status, session?.user?.spreadsheetId, session?.user?.email])
+
+//   useEffect(() => {
+//     if (status === "unauthenticated") {
+//       setupAttempted.current = false
+//       setupInProgress.current = false
+//       setIsSpreadsheetReady(false)
+//     }
+//   }, [status])  
+
+  
+//   return (
+//     <>
+//       <Box mt="80px" bg="bg.canvas">
+//         {/* Header */}
+//         <Box as="header">
+//           <Box maxW="4xl" mx="auto" px={{ base: 1, sm: 1, md: 6 }}>
+//             <HStack justify="space-between" align="center" flexDir={{ base: "column", md: "row" }} w="100%">
+//               <VStack align={{ base: "center", md: "start" }} gap={1} mt={{ base: 5, md: 20 }} w="100%">
+//                 <TimeWidget onDateChange={setSelectedDate} />
+//               </VStack>
+
+//               <VStack align="end" gap={2} mt={{ base: 5, md: "20px" }} display={{ base: "none", md: "flex" }}>
+//                 <Button variant="outline" onClick={() => setShowPastEntries(!showPastEntries)}>
+//                   <BookOpen size={16} />
+//                   {showPastEntries ? "Hide" : "View"} Past Entries
+//                 </Button>
+//                 <StatusWidget refreshTrigger={refreshTrigger} onStatusChange={setJournalStatus} onSpreadsheetCreated={spreadsheetCreatedTrigger} />
+//               </VStack>
+//             </HStack>
+//           </Box>
+//         </Box>
+
+//         {/* Main Content */}
+//         <Box as="main" maxW="4xl" mx="auto" px={6} py={6}>
+//           <VStack gap={8} align="stretch" mb={12}>
+//             <Box bg="bg.canvas" border="2px solid" borderColor="sage.500" shadow="sm" rounded="md" p={8}>
+//               {isLoading ? (
+//                 <VStack gap={6} align="stretch">
+//                   <Skeleton height="40px" border="1px solid" borderColor="gray.600" />
+//                   <Skeleton height="40px" border="1px solid" borderColor="gray.600" />
+//                   <Skeleton height="120px" border="1px solid" borderColor="gray.600"/>
+//                   <Skeleton height="40px" border="1px solid" borderColor="gray.600"/>
+//                 </VStack>
+//               ) : !hasWrittenToday ? (
+//                 <VStack gap={6} align="stretch">
+//                   <VStack gap={3} textAlign="center">
+//                     <Heading textStyle="headingTextStoryBoxEdit">
+//                       What&apos;s Your Story Today?
+//                     </Heading>
+//                     <Text color="gray.500" maxW="md" mx="auto" textStyle="subHeadingTextStoryBoxEdit">
+//                       Write One Meaningful Moment From Today.
+//                     </Text>
+//                   </VStack>
+
+//                   <VStack gap={4} align="center">
+//                     <Textarea textStyle="placeholderStoryBoxEdit" placeholder={prompts.promptContent} value={storyContent} onChange={(e) => setStoryContent(e.target.value)} minH="120px" disabled={existingJournal} autoresize/>
+//                     <Button textStyle="ButtonStoryBoxEdit" onClick={handleSaveStory} disabled={!storyContent.trim() || existingJournal || isCheckingExisting}>
+//                       {existingJournal ? "Story Already Exists" : "Save Today\s Story"}
+//                     </Button>
+                    
+//                     {/* <Button variant="outline" textStyle="placeholderStoryBoxEdit" onClick={handleSaveDraft} disabled={!storyContent.trim() || existingJournal || isCheckingExisting}>
+//                       Save Draft
+//                     </Button> */}
+//                   </VStack>
+//                 </VStack>
+//               ) : (
+//                 <VStack gap={6} align="stretch">
+//                   <VStack gap={3} textAlign="center">
+//                     <Heading textStyle="headingTextStoryBoxEdit">
+//                       Today&apos;s Story Complete
+//                     </Heading>
+//                     <Text color="gray.500" textStyle="subHeadingTextStoryBoxEdit">
+//                       You&apos;ve captured today&apos;s moment.<br/>See you tomorrow!
+//                     </Text>
+//                   </VStack>
+
+//                   <Box rounded="md" p={6} border="1px solid" borderColor="sage.500" textStyle="textStoryBoxEdit" fontStyle="italic" textAlign="center">
+//                     {todayEntry === "" ? <Skeleton height="40px" /> : `"${todayEntry}"`}
+//                   </Box>
+
+//                   <Center>
+//                     <Button variant="outline" textStyle="ButtonStoryBoxEdit" border="1px solid" borderColor="sage.500" onClick={editTodayEntry}>
+//                       Edit Today&apos;s Story
+//                     </Button>
+//                   </Center>
+//                 </VStack>
+//               )}
+//             </Box>
+//           </VStack>
+          
+//           {/* Tombol Past Entries khusus mobile */}
+//           <Box display={{ base: "block", md: "none" }} mb={6}>
+//             <Button width="100%" border="2px solid" borderColor="sage.500" shadow="sm" variant="outline" onClick={() => setShowPastEntries(!showPastEntries)} textStyle="buttonHistory">
+//               <BookOpen size={20} />
+//               {showPastEntries ? "Hide Past Stories" : "View Past Stories"}
+//             </Button>
+//           </Box>
+          
+//           {showPastEntries && (
+//             <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3, ease: "easeInOut" }} style={{ overflow: "hidden" }}>
+//               <History refreshTrigger={refreshTrigger} />
+//             </motion.div>
+//           )}
+//         </Box>
+          
+//         {/* Floating Action Button khusus mobile */}
+//         <Box position="fixed" bottom="24px" right="24px" zIndex={50} display={{ base: "block", md: "none" }}>
+//           {isLoading ? (
+//             <SkeletonCircle size="12" border="1px solid" borderColor="gray.600" />
+//           ) : (
+//             <MotionBox textStyle="floatingButtonText" initial={{ width: 40, height: 40, borderRadius: "50%" }} animate={ open ? { width: "auto", height: "56", borderRadius: "16px" } : { width: 40, height: 40, borderRadius: "50%" }} transition={{ damping: 20 }} border="2px solid" bg="bg.canvas" borderColor={ journalStatus ? "brand.500" : "orange.500"} color="white" overflow="hidden" cursor="pointer" display="flex" alignItems="center" justifyContent={open ? "flex-start" : "center"} px={open ? 1 : 0} py={open ? 1 : 0} shadow="sm" onClick={onToggle}>
+//               <AnimatePresence>
+//                 {open && (
+//                   <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.1 }} style={{ marginLeft: "8px", whiteSpace: "nowrap" }}>
+//                     {journalStatus ? "Great, you've already written today." : "It's not too late, write your story now."}
+//                   </motion.div>
+//                 )}
+//               </AnimatePresence>
+//             </MotionBox>
+//           )}
+//         </Box>
+//       </Box>
+//     </>
+//   )
+// }
+
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -36,6 +496,11 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
   const [isSettingUpSpreadsheet, setIsSettingUpSpreadsheet] = useState(false)
   const [isSpreadsheetReady, setIsSpreadsheetReady] = useState(false)
   const hasWrittenToday = Boolean(existingJournal)
+  const [spreadsheetCreatedTrigger, setSpreadsheetCreatedTrigger] = useState(0)
+
+  // FAB specific states
+  const [fabStatus, setFabStatus] = useState<boolean | null>(null)
+  const [fabLoading, setFabLoading] = useState(true)
 
   const setupAttempted = useRef(false)
   const setupInProgress = useRef(false)
@@ -78,10 +543,14 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
         setExistingJournal({ storyDate: date })
         setTodayEntry(data.content)
         setStoryContent(data.content)
+        // Update FAB status when journal exists
+        setFabStatus(true)
       } else {
         setExistingJournal(null)
         setTodayEntry("")
         setStoryContent("")
+        // Update FAB status when no journal
+        setFabStatus(false)
       }
       setLastCheckedDate(date)
     } catch (error) {
@@ -89,9 +558,11 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
       setExistingJournal(null)
       setTodayEntry("")
       setStoryContent("")
+      setFabStatus(false)
     } finally {
       setIsCheckingExisting(false)
       setIsLoading(false)
+      setFabLoading(false)
     }
   }
 
@@ -153,6 +624,9 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
       setTodayEntry(storyContent)
       setLastCheckedDate("")
       
+      // Update FAB status immediately when story is saved
+      setFabStatus(true)
+      
       if (!isUpdate) {
         setStoryContent("")
         refreshPrompts()
@@ -187,6 +661,10 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
       
       setExistingJournal({ storyDate: selectedDate })
       setTodayEntry(storyContent)
+      
+      // Update FAB status immediately when draft is saved
+      setFabStatus(true)
+      
       triggerGlobalRefresh()
       
     } catch (error) {
@@ -194,18 +672,12 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
     }
   }
 
-  // const handleContinueDraft = () => {
-  //   toaster.create({
-  //     title: "Fitur Segera Hadir",
-  //     description: "Fitur Teruskan Menulis akan segera tersedia!",
-  //     type: "info",
-  //   })
-  // }
-
   const editTodayEntry = () => {
     setExistingJournal(null)
     setTodayEntry("")
     setStoryContent(todayEntry || "")
+    // Update FAB status when editing (back to false since journal is being edited)
+    setFabStatus(false)
   }
 
   const setupSpreadsheet = async () => {
@@ -237,6 +709,8 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
       console.log("Spreadsheet setup successful:", data.spreadsheetId)
       setupAttempted.current = true
       setIsSpreadsheetReady(true)
+
+      setSpreadsheetCreatedTrigger(prev => prev + 1)
       
       return data
     })()
@@ -278,6 +752,16 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
     }
   }
 
+  // Handle status changes from StatusWidget
+  const handleStatusChange = (hasJournal: boolean) => {
+    console.log("Status change received from StatusWidget:", hasJournal)
+    setJournalStatus(hasJournal)
+    // Also update FAB status if it's not already set correctly
+    if (fabStatus !== hasJournal) {
+      setFabStatus(hasJournal)
+    }
+  }
+
   useEffect(() => {
     if (session?.supabaseAccessToken) {
       setSupabaseAuth(supabase, session.supabaseAccessToken)
@@ -307,7 +791,10 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
         setIsSpreadsheetReady(true)
       } else {
         setIsSpreadsheetReady(false)
+        setFabLoading(true) // Keep FAB loading until spreadsheet is ready
       }
+    } else {
+      setFabLoading(true)
     }
   }, [status, session?.user?.spreadsheetId])
 
@@ -335,9 +822,21 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
       setupAttempted.current = false
       setupInProgress.current = false
       setIsSpreadsheetReady(false)
+      setFabStatus(null)
+      setFabLoading(true)
     }
-  }, [status])  
+  }, [status])
 
+  // Update FAB loading when spreadsheet becomes ready
+  useEffect(() => {
+    if (isSpreadsheetReady && selectedDate) {
+      // Don't immediately set fabLoading to false, let checkExistingJournal handle it
+      console.log("Spreadsheet ready, will check journal status")
+    }
+  }, [isSpreadsheetReady, selectedDate])
+
+  // Use fabStatus for FAB display, fallback to journalStatus if fabStatus is null
+  const displayStatus = fabStatus !== null ? fabStatus : journalStatus
   
   return (
     <>
@@ -355,7 +854,11 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
                   <BookOpen size={16} />
                   {showPastEntries ? "Hide" : "View"} Past Entries
                 </Button>
-                <StatusWidget refreshTrigger={refreshTrigger} onStatusChange={setJournalStatus} />
+                <StatusWidget 
+                  refreshTrigger={refreshTrigger} 
+                  onStatusChange={handleStatusChange} 
+                  onSpreadsheetCreated={spreadsheetCreatedTrigger} 
+                />
               </VStack>
             </HStack>
           </Box>
@@ -436,14 +939,14 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
           
         {/* Floating Action Button khusus mobile */}
         <Box position="fixed" bottom="24px" right="24px" zIndex={50} display={{ base: "block", md: "none" }}>
-          {isLoading ? (
+          {fabLoading ? (
             <SkeletonCircle size="12" border="1px solid" borderColor="gray.600" />
           ) : (
-            <MotionBox textStyle="floatingButtonText" initial={{ width: 40, height: 40, borderRadius: "50%" }} animate={ open ? { width: "auto", height: "56", borderRadius: "16px" } : { width: 40, height: 40, borderRadius: "50%" }} transition={{ damping: 20 }} border="2px solid" bg="bg.canvas" borderColor={ journalStatus ? "brand.500" : "orange.500"} color="white" overflow="hidden" cursor="pointer" display="flex" alignItems="center" justifyContent={open ? "flex-start" : "center"} px={open ? 1 : 0} py={open ? 1 : 0} shadow="sm" onClick={onToggle}>
+            <MotionBox textStyle="floatingButtonText" initial={{ width: 40, height: 40, borderRadius: "50%" }} animate={ open ? { width: "auto", height: "56", borderRadius: "16px" } : { width: 40, height: 40, borderRadius: "50%" }} transition={{ damping: 20 }} border="2px solid" bg="bg.canvas" borderColor={ displayStatus ? "brand.500" : "orange.500"} color="white" overflow="hidden" cursor="pointer" display="flex" alignItems="center" justifyContent={open ? "flex-start" : "center"} px={open ? 1 : 0} py={open ? 1 : 0} shadow="sm" onClick={onToggle}>
               <AnimatePresence>
                 {open && (
                   <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.1 }} style={{ marginLeft: "8px", whiteSpace: "nowrap" }}>
-                    {journalStatus ? "Great, you've already written today." : "It's not too late, write your story now."}
+                    {displayStatus ? "Great, you've already written today." : "It's not too late, write your story now."}
                   </motion.div>
                 )}
               </AnimatePresence>
