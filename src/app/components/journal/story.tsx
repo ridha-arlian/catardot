@@ -208,58 +208,6 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
     setStoryContent(todayEntry || "")
   }
 
-  // const setupSpreadsheet = async () => {
-  //   if (setupInProgress.current || setupAttempted.current) {
-  //     console.log("Setup already in progress or attempted, skipping...")
-  //     return
-  //   }
-
-  //   setupInProgress.current = true
-  //   setIsSettingUpSpreadsheet(true)
-    
-  //   try {
-  //     console.log("Setting up spreadsheet for user:", session?.user?.email)
-      
-  //     const response = await fetch("/api/sheets", { 
-  //       method: "POST",
-  //       credentials: "include"
-  //     })
-      
-  //     if (!response.ok) {
-  //       throw new Error(`HTTP error! status: ${response.status}`)
-  //     }
-      
-  //     const data = await response.json()
-      
-  //     if (data.spreadsheetId) {
-  //       console.log("Spreadsheet setup successful:", data.spreadsheetId)
-  //       setupAttempted.current = true
-  //       setIsSpreadsheetReady(true)
-        
-  //       toaster.create({
-  //         title: "Journal Ready!",
-  //         description: "Your personal journal spreadsheet has been created.",
-  //         type: "success",
-  //         duration: 5000,
-  //         closable: true,
-  //       })
-  //     }
-  //   } catch (error) {
-  //     console.error("Setup failed:", error)
-  //     setupInProgress.current = false
-      
-  //     toaster.create({
-  //       title: "Setup Failed",
-  //       description: "There was an issue setting up your journal. Please try again.",
-  //       type: "error",
-  //       duration: 5000,
-  //       closable: true,
-  //     })
-  //   } finally {
-  //     setIsSettingUpSpreadsheet(false)
-  //     setupInProgress.current = false
-  //   }
-  // }
   const setupSpreadsheet = async () => {
     if (setupInProgress.current) {
       console.log("Setup already in progress, skipping...")
@@ -268,7 +216,6 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
 
     setupInProgress.current = true
     
-    // Create toaster promise for setup process
     const setupPromise = (async () => {
       console.log("Setting up spreadsheet for user:", session?.user?.email)
       
@@ -294,7 +241,6 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
       return data
     })()
 
-    // Use toaster.promise for better UX
     toaster.promise(setupPromise, {
       success: {
         title: "Journal Ready!",
@@ -392,33 +338,6 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
     }
   }, [status])  
 
-  // if (isSettingUpSpreadsheet) {
-  //   return (
-  //     <Center minH="200px">
-  //       <VStack gap={4}>
-  //         <Skeleton height="20px" width="200px" border="1px solid" borderColor="gray.600"/>
-  //         <Text>
-  //           Setting up your journal...
-  //         </Text>
-  //       </VStack>
-  //     </Center>
-  //   )
-  // }
-
-  // if (status === "authenticated" && !isSpreadsheetReady && !isSettingUpSpreadsheet) {
-  //   return (
-  //     <Center minH="200px">
-  //       <VStack gap={4}>
-  //         <Text>
-  //           Preparing your journal space...
-  //         </Text>
-  //         <Button onClick={setupSpreadsheet} disabled={setupInProgress.current}>
-  //           Retry Setup
-  //         </Button>
-  //       </VStack>
-  //     </Center>
-  //   )
-  // }
   
   return (
     <>
