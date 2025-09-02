@@ -370,7 +370,7 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
                             return `${weekday}, ${datepart}`
                           })()}
                           {isTodayEntry && (
-                            <Badge ml={1} colorPalette="green" mt="2">
+                            <Badge ml={1} colorPalette="green" mt="2" textStyle="badgeHistoryList">
                               Today
                             </Badge>
                           )}
@@ -383,7 +383,7 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
                             <HStack gap={2} justify="center">
                               <Button size="sm" variant="outline" onClick={() => handleSaveEdit(entryDate)} disabled={!editContent.trim() || isSaving} bg="bg.canvas" color="white" border="1px solid" borderColor="sage.500">
                                 <Save size={14} />
-                                {isSaving ? "Menyimpan..." : "Simpan"}
+                                {isSaving ? "Saving..." : "Save"}
                               </Button>
                               <Button size="sm" variant="outline" onClick={cancelEdit} disabled={isSaving} border="1px solid" borderColor="sage.500">
                                 <X size={14} />
@@ -406,7 +406,7 @@ export const History = ({ refreshTrigger }: HistoryProps) => {
                                   Edit
                                 </Button>
                               ) : (
-                                <Text fontSize="xs" color="gray.400" textAlign="center">
+                                <Text textStyle="infoTodayHistoryList" color="gray.400" textAlign="center">
                                   Edit in the main box for today&apos;s story
                                 </Text>
                               )}

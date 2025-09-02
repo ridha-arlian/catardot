@@ -21,7 +21,7 @@ export const TimeWidget = ({ onDateChange }: TimeWidgetProps) => {
   )
   
   const formatTime = () => {
-    const time = currentTime.toLocaleTimeString("en-US", {
+    const time = currentTime.toLocaleTimeString("en-GB", {
       hour: "2-digit",
       minute: "2-digit",
       second: "2-digit",
@@ -34,7 +34,7 @@ export const TimeWidget = ({ onDateChange }: TimeWidgetProps) => {
   const { hours, minutes, seconds } = formatTime()
 
   const formatDate = () => {
-    return currentTime.toLocaleDateString("id-ID", {
+    return currentTime.toLocaleDateString("en-GB", {
       weekday: "long",
       day: "numeric",
       month: "long"
@@ -56,38 +56,40 @@ export const TimeWidget = ({ onDateChange }: TimeWidgetProps) => {
   }, [onDateChange])
 
   return (
-    <VStack gap="2" align="start">
-      {/* Clock Content */}
-      <Box p={3} zIndex={1} position="relative" overflow="hidden">
-        <VStack gap={2} align="start">
-          {/* Time */}
-          <HStack gap={0} minH={{ base: "30px", md: "30px" }} textStyle="timeWidgetNum" color={timeTextColor} textAlign="center" minW={{ base: "40px", md: "30px" }}>
-            <Text>
-              {hours}
+    <>
+      <VStack gap="2" align="start">
+        {/* Clock Content */}
+        <Box p={3} zIndex={1} position="relative" overflow="hidden">
+          <VStack gap={2} align="start">
+            {/* Time */}
+            <HStack gap={0} minH={{ base: "30px", md: "50px" }} textStyle="timeWidgetNum" color={timeTextColor} textAlign="center" minW={{ base: "40px", md: "50px" }}>
+              <Text>
+                {hours}
+              </Text>
+
+              <IOSBlinkingColon show={showColon} />
+
+              <Text display="inline-block" textAlign="center" width={{ base: "80px", md: "80px" }}>
+                {minutes}
+              </Text>
+
+              <IOSBlinkingColon show={showColon} />
+
+              <Text opacity={0.8} display="inline-block" width={{ base: "80px", md: "80px" }}>
+                {seconds}
+              </Text>
+            </HStack>
+
+            {/* Separator */}
+            <Box height="1px" bg="sage.500" width="100%" mt={2} />
+
+            {/* Date */}
+            <Text textStyle="timeWidgetText" color="brand.500" textAlign={{ base: "center", md: "start" }} w="100%">
+              {formatDate()}
             </Text>
-
-            <IOSBlinkingColon show={showColon} />
-
-            <Text display="inline-block" textAlign="center" width={{ base: "80px", md: "30px" }}>
-              {minutes}
-            </Text>
-
-            <IOSBlinkingColon show={showColon} />
-
-            <Text opacity={0.8} display="inline-block" width={{ base: "80px", md: "30px" }}>
-              {seconds}
-            </Text>
-          </HStack>
-
-          {/* Separator */}
-          <Box height="1px" bg="sage.500" width="100%" mt={2} />
-
-          {/* Date */}
-          <Text textStyle="timeWidgetText" textAlign={{ base: "center", md: "start" }} w="100%">
-            {formatDate()}
-          </Text>
-        </VStack>
-      </Box>
-    </VStack>
+          </VStack>
+        </Box>
+      </VStack>
+    </>
   )
 }

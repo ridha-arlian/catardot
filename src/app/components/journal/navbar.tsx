@@ -42,7 +42,7 @@ export const Navbar = () => {
     <>
       <MotionFlex as="nav" position="fixed" top={0} left={0} right={0} zIndex={50} justify="space-between" align="center" px={{ base: 4, md: 8 }} py={{ base: scrolled ? 4 : 3, sm: scrolled ? 4 : 2, md: scrolled ? 4 : 6, lg: scrolled ? 4 : 6, xl: scrolled ? 4 : 6 }} bg={ scrolled ? { base: "whites.bgs", _dark: "blur" } : "transparent" } backdropFilter={ scrolled ? "blur(12px)" : "none" } initial={{ y: -100 }} animate={{ y: 0 }} transitionDuration="0.5s">
     
-        <VStack align="start" gap={{ base: 2, sm: 2, md: 4, lg: 4, xl: 4 }}>
+        <VStack align="start" gap={{ base: 2, sm: 2, md: 2, lg: 4, xl: 4 }}>
           <Heading textStyle="headingNav">
             Catardot.
           </Heading>

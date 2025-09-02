@@ -27,11 +27,35 @@ export const textStyles = defineTextStyles({
       textTransform: "none",
     },
   },
+  subHeadingLP2:{
+    description: "For Sub Heading in Landing Page",
+    value: {
+      fontFamily: "var(--font-quicksand)",
+      fontWeight: "800",
+      fontSize: "35px",
+      lineHeight: "40px",
+      letterSpacing: "0px",
+      textDecoration: "none",
+      textTransform: "none",
+    },
+  },
   textLP:{
     description: "For Sub Heading in Landing Page",
     value: {
       fontFamily: "var(--font-quicksand)",
-      fontWeight: "400",
+      fontWeight: "600",
+      fontSize: "18px",
+      lineHeight: "40px",
+      letterSpacing: "0px",
+      textDecoration: "none",
+      textTransform: "none",
+    },
+  },
+  textLP2:{
+    description: "For Sub Heading in Landing Page",
+    value: {
+      fontFamily: "var(--font-quicksand)",
+      fontWeight: "800",
       fontSize: "18px",
       lineHeight: "40px",
       letterSpacing: "0px",
@@ -55,7 +79,7 @@ export const textStyles = defineTextStyles({
     description: "For Heading Feature Grid in Landing Page",
     value: {
       fontFamily: "var(--font-quicksand)",
-      fontWeight: "500",
+      fontWeight: "600",
       fontSize: "16px",
       lineHeight: "20px",
       letterSpacing: "0px",
@@ -79,7 +103,7 @@ export const textStyles = defineTextStyles({
     description: "For Heading Feature Grid in Landing Page",
     value: {
       fontFamily: "var(--font-quicksand)",
-      fontWeight: "500",
+      fontWeight: "600",
       fontSize: "14px",
       lineHeight: "20px",
       letterSpacing: "0px",
@@ -91,7 +115,7 @@ export const textStyles = defineTextStyles({
     description: "For Heading Feature Grid in Landing Page",
     value: {
       fontFamily: "var(--font-quicksand)",
-      fontWeight: "500",
+      fontWeight: "600",
       fontSize: "14px",
       lineHeight: "20px",
       letterSpacing: "0px",
@@ -128,11 +152,59 @@ export const textStyles = defineTextStyles({
     value: {
       fontFamily: "var(--font-quicksand)",
       fontWeight: "500",
-      fontSize: "12px",
+      fontSize: "14px",
       lineHeight: "20px",
       letterSpacing: "0px",
       textDecoration: "none",
       textTransform: "none",
+    },
+  },
+  headingLPAbout:{
+    description: "For Heading Feature Grid in Landing Page",
+    value: {
+      fontFamily: "var(--font-quicksand)",
+      fontWeight: "800",
+      fontSize: "20px",
+      lineHeight: "20px",
+      letterSpacing: "0px",
+      textDecoration: "none",
+      textTransform: "uppercase",
+    },
+  },
+  subHeadingLPAbout:{
+    description: "For Heading Feature Grid in Landing Page",
+    value: {
+      fontFamily: "var(--font-quicksand)",
+      fontWeight: "800",
+      fontSize: "18px",
+      lineHeight: "20px",
+      letterSpacing: "0px",
+      textDecoration: "none",
+      textTransform: "uppercase",
+    },
+  },
+  textLPAbout:{
+    description: "For Heading Feature Grid in Landing Page",
+    value: {
+      fontFamily: "var(--font-quicksand)",
+      fontWeight: "500",
+      fontSize: "16px",
+      lineHeight: "20px",
+      letterSpacing: "0px",
+      textDecoration: "none",
+      textTransform: "none",
+    },
+  },
+  textLPAbout2:{
+    description: "For Heading Feature Grid in Landing Page",
+    value: {
+      fontFamily: "var(--font-quicksand)",
+      fontWeight: "800",
+      fontSize: "16px",
+      lineHeight: "20px",
+      letterSpacing: "0px",
+      textDecoration: "none",
+      textTransform: "uppercase",
     },
   },
 
@@ -142,7 +214,7 @@ export const textStyles = defineTextStyles({
     value: {
       fontFamily: "var(--font-playfair-display)",
       fontWeight: "600",
-      fontSize: { base: "22px", sm: "16px", md: "16px", lg: "16px", xl: "40px" },
+      fontSize: { base: "22px", sm: "26px", md: "28px", lg: "30px", xl: "40px" },
       lineHeight: "24px",
       letterSpacing: "0px",
       textDecoration: "none",
@@ -154,7 +226,7 @@ export const textStyles = defineTextStyles({
     value: {
       fontFamily: "var(--font-quicksand)",
       fontWeight: "600",
-      fontSize: { base: "14px", sm: "16px", md: "16px", lg: "16px", xl: "16px" },
+      fontSize: { md: "12px", lg: "14px", xl: "16px" },
       lineHeight: "20px",
       letterSpacing: "0px",
       textDecoration: "none",
@@ -166,7 +238,7 @@ export const textStyles = defineTextStyles({
     value: {
       fontFamily: "var(--font-quicksand)",
       fontWeight: "500",
-      fontSize: { base: "14px", sm: "16px", md: "16px", lg: "16px", xl: "14px" },
+      fontSize: { base: "14px", sm: "14px", md: "14px", lg: "14px", xl: "14px" },
       lineHeight: "20px",
       letterSpacing: "0px",
       textDecoration: "none",
@@ -180,7 +252,7 @@ export const textStyles = defineTextStyles({
     value: {
       fontFamily: "var(--font-quicksand)",
       fontWeight: "600",
-      fontSize: { base: "60px", sm: "16px", md: "16px", lg: "16px", xl: "60px" },
+      fontSize: { base: "60px", sm: "60px", md: "60px", lg: "60px", xl: "60px" },
       lineHeight: "20px",
       letterSpacing: "0px",
       textDecoration: "none",
@@ -192,7 +264,7 @@ export const textStyles = defineTextStyles({
     value: {
       fontFamily: "var(--font-quicksand)",
       fontWeight: "600",
-      fontSize: { base: "25px", sm: "16px", md: "16px", lg: "16px", xl: "35px" },
+      fontSize: { base: "24px", sm: "28px", md: "28px", lg: "28px", xl: "35px" },
       lineHeight: "20px",
       letterSpacing: "0px",
       textDecoration: "none",
@@ -206,7 +278,7 @@ export const textStyles = defineTextStyles({
     value: {
       fontFamily: "var(--font-quicksand)",
       fontWeight: { base: "600", sm: "600", md: "700", lg: "700", xl: "700" },
-      fontSize: { base: "14px", sm: "14px", md: "16px", lg: "16px", xl: "16px" },
+      fontSize: { md: "16px", lg: "16px", xl: "16px" },
       lineHeight: "20px",
       letterSpacing: "0px",
       textDecoration: "none",
@@ -218,7 +290,7 @@ export const textStyles = defineTextStyles({
     value: {
       fontFamily: "var(--font-quicksand)",
       fontWeight: "600",
-      fontSize: { base: "14px", sm: "16px", md: "16px", lg: "16px", xl: "14px" },
+      fontSize: { md: "14px", lg: "14px", xl: "14px" },
       lineHeight: "20px",
       letterSpacing: "0px",
       textDecoration: "none",
@@ -230,7 +302,7 @@ export const textStyles = defineTextStyles({
     value: {
       fontFamily: "var(--font-quicksand)",
       fontWeight: "600",
-      fontSize: { base: "12px", sm: "12px", md: "16px", lg: "16px", xl: "14px" },
+      fontSize: { md: "14px", lg: "14px", xl: "14px" },
       lineHeight: "20px",
       letterSpacing: "0px",
       textDecoration: "none",
@@ -244,7 +316,7 @@ export const textStyles = defineTextStyles({
     value: {
       fontFamily: "var(--font-quicksand)",
       fontWeight: "600",
-      fontSize: { base: "14px", sm: "12px", md: "16px", lg: "16px", xl: "14px" },
+      fontSize: { base: "14px", sm: "14px" },
       lineHeight: "20px",
       letterSpacing: "0px",
       textDecoration: "none",
@@ -258,7 +330,7 @@ export const textStyles = defineTextStyles({
     value: {
       fontFamily: "var(--font-quicksand)",
       fontWeight: "600",
-      fontSize: { base: "25px", sm: "12px", md: "16px", lg: "16px", xl: "14px" },
+      fontSize: { base: "24px", sm: "28px", md: "30px", lg: "32px", xl: "34px" },
       lineHeight: "40px",
       letterSpacing: "0px",
       textDecoration: "none",
@@ -270,7 +342,7 @@ export const textStyles = defineTextStyles({
     value: {
       fontFamily: "var(--font-quicksand)",
       fontWeight: "500",
-      fontSize: { base: "16px", sm: "12px", md: "16px", lg: "16px", xl: "14px" },
+      fontSize: { base: "16px", sm: "16px", md: "18px", lg: "20px", xl: "20px" },
       lineHeight: "20px",
       letterSpacing: "0px",
       textDecoration: "none",
@@ -282,7 +354,7 @@ export const textStyles = defineTextStyles({
     value: {
       fontFamily: "var(--font-quicksand)",
       fontWeight: "500",
-      fontSize: { base: "16px", sm: "12px", md: "16px", lg: "16px", xl: "14px" },
+      fontSize: { base: "16px", sm: "16px", md: "16px", lg: "16px", xl: "16px" },
       lineHeight: "20px",
       letterSpacing: "0px",
       textDecoration: "none",
@@ -294,7 +366,7 @@ export const textStyles = defineTextStyles({
     value: {
       fontFamily: "var(--font-quicksand)",
       fontWeight: "600",
-      fontSize: { base: "14px", sm: "12px", md: "16px", lg: "16px", xl: "14px" },
+      fontSize: { base: "14px", sm: "16px", md: "16px", lg: "16px", xl: "16px" },
       lineHeight: "20px",
       letterSpacing: "0px",
       textDecoration: "none",
@@ -306,7 +378,7 @@ export const textStyles = defineTextStyles({
     value: {
       fontFamily: "var(--font-quicksand)",
       fontWeight: "500",
-      fontSize: { base: "16px", sm: "12px", md: "16px", lg: "16px", xl: "14px" },
+      fontSize: { base: "14px", sm: "16px", md: "16px", lg: "16px", xl: "16px" },
       lineHeight: "20px",
       letterSpacing: "0px",
       textDecoration: "none",
@@ -320,7 +392,7 @@ export const textStyles = defineTextStyles({
     value: {
       fontFamily: "var(--font-quicksand)",
       fontWeight: "500",
-      fontSize: { base: "16px", sm: "12px", md: "16px", lg: "16px", xl: "14px" },
+      fontSize: { base: "14px", sm: "16px", md: "16px", lg: "16px", xl: "16px" },
       lineHeight: "20px",
       letterSpacing: "0px",
       textDecoration: "none",
@@ -332,7 +404,7 @@ export const textStyles = defineTextStyles({
     value: {
       fontFamily: "var(--font-quicksand)",
       fontWeight: "500",
-      fontSize: { base: "14px", sm: "12px", md: "16px", lg: "16px", xl: "14px" },
+      fontSize: { base: "14px", sm: "14px", md: "14px", lg: "14px", xl: "14px" },
       lineHeight: "20px",
       letterSpacing: "0px",
       textDecoration: "none",
@@ -344,7 +416,7 @@ export const textStyles = defineTextStyles({
     value: {
       fontFamily: "var(--font-quicksand)",
       fontWeight: "500",
-      fontSize: { base: "14px", sm: "12px", md: "16px", lg: "16px", xl: "14px" },
+      fontSize: { base: "14px", sm: "16px", md: "16px", lg: "16px", xl: "16px" },
       lineHeight: "20px",
       letterSpacing: "0px",
       textDecoration: "none",
@@ -356,7 +428,7 @@ export const textStyles = defineTextStyles({
     value: {
       fontFamily: "var(--font-quicksand)",
       fontWeight: "700",
-      fontSize: { base: "18px", sm: "12px", md: "16px", lg: "16px", xl: "14px" },
+      fontSize: { base: "18px", sm: "18px", md: "18px", lg: "18px", xl: "18px" },
       lineHeight: "20px",
       letterSpacing: "0px",
       textDecoration: "none",
@@ -368,7 +440,31 @@ export const textStyles = defineTextStyles({
     value: {
       fontFamily: "var(--font-quicksand)",
       fontWeight: "500",
-      fontSize: { base: "14px", sm: "12px", md: "16px", lg: "16px", xl: "14px" },
+      fontSize: { base: "14px", sm: "14px", md: "14px", lg: "14px", xl: "14px" },
+      lineHeight: "20px",
+      letterSpacing: "0px",
+      textDecoration: "none",
+      textTransform: "none",
+    },
+  },
+  infoTodayHistoryList:{
+    description: "For Sub Heading Text in Story Box",
+    value: {
+      fontFamily: "var(--font-quicksand)",
+      fontWeight: "500",
+      fontSize: { base: "12px", sm: "14px", md: "14px", lg: "14px", xl: "14px" },
+      lineHeight: "20px",
+      letterSpacing: "0px",
+      textDecoration: "none",
+      textTransform: "none",
+    },
+  },
+  badgeHistoryList:{
+    description: "For Sub Heading Text in Story Box",
+    value: {
+      fontFamily: "var(--font-quicksand)",
+      fontWeight: "500",
+      fontSize: { base: "12px", sm: "12px", md: "12px", lg: "12px", xl: "12px" },
       lineHeight: "20px",
       letterSpacing: "0px",
       textDecoration: "none",
@@ -382,7 +478,7 @@ export const textStyles = defineTextStyles({
     value: {
       fontFamily: "var(--font-quicksand)",
       fontWeight: "600",
-      fontSize: { base: "14px", sm: "12px", md: "16px", lg: "16px", xl: "14px" },
+      fontSize: { base: "14px", sm: "14px", md: "14px", lg: "14px", xl: "14px" },
       lineHeight: "20px",
       letterSpacing: "0px",
       textDecoration: "none",

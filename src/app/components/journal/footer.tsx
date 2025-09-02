@@ -1,9 +1,9 @@
 "use client"
 
-import { Githubicons, Linkedinicons } from "@/components/icons/iconsDarkMode"
-import { Box, Container, Flex, HStack, Link, Text } from "@chakra-ui/react"
 import { Mail } from "lucide-react"
 import { useState, useEffect } from "react"
+import { Box, Container, Flex, HStack, Link, Text } from "@chakra-ui/react"
+import { Githubicons, Linkedinicons } from "@/components/icons/iconsDarkMode"
 
 export const Footer = () => {
   const [year, setYear] = useState<number | null>(null)
