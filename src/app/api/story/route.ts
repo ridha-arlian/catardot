@@ -1,158 +1,222 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '../../../../generated/prisma'
+import { google } from "googleapis"
+import { auth } from "../../../../auth"
+import { redis } from "@/app/lib/redis"
+import { NextRequest, NextResponse } from "next/server"
+import { invalidateJournalCache } from "@/app/utils/invalidate-cache"
 
-const prisma = new PrismaClient()
-
-// GET - Mengambil story berdasarkan tanggal atau semua story user
 export async function GET(request: NextRequest) {
   try {
+    const session = await auth()
+    if (!session || !session.accessToken || !session.user?.spreadsheetId) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      )
+    }
+
     const { searchParams } = new URL(request.url)
-    const date = searchParams.get('date')
-    const userId = searchParams.get('userId')
-    const year = searchParams.get('year')
-    const month = searchParams.get('month')
+    const storyDate = searchParams.get("storyDate")
+    const month = searchParams.get("month")
+    const year = searchParams.get("year")
+    const forceRefresh = searchParams.get("refresh") === "true"
 
-    if (!userId) {
-      return NextResponse.json({ error: 'User ID diperlukan' }, { status: 400 })
+    if (!storyDate && !(month && year)) {
+      return NextResponse.json(
+        { error: "Missing parameters (storyDate OR month+year required)" },
+        { status: 400 }
+      )
     }
 
-    let stories
+    const spreadsheetId = session.user.spreadsheetId
+    const accessToken = session.accessToken
+    const cacheKey = storyDate ? `story:${storyDate}` : `stories:${year}-${month}`
+    const today = new Date().toISOString().split('T')[0]
 
-    if (date) {
-      // Get specific date
-      stories = await prisma.story.findUnique({
-        where: {
-          userId_storyDate: {
-            userId: userId,
-            storyDate: new Date(date + 'T00:00:00.000Z')
+    let cached = null
+
+    if (!forceRefresh) cached = await redis.get(cacheKey)
+
+    if (cached && !forceRefresh) {
+      try {
+        const cachedData = typeof cached === "string" ? JSON.parse(cached) : cached
+        
+        if (storyDate === today) {
+          const cacheAge = Date.now() - (cachedData.cachedAt || 0)
+          const maxAge = 2 * 60 * 1000 // 2 minute
+          
+          if (cacheAge > maxAge) {
+            console.log("Cache expired for today's data, fetching fresh data")
+            await redis.del(cacheKey)
+          } else {
+            console.log("Returning fresh data from Redis cache")
+            return NextResponse.json(cachedData.data)
           }
+        } else {
+          console.log("Returning historical data from Redis cache")
+          return NextResponse.json(cachedData.data || cachedData)
         }
-      })
-    } else if (year && month) {
-      // Get stories for specific month - OPTIMASI BARU
-      const startDate = new Date(`${year}-${month.padStart(2, '0')}-01T00:00:00.000Z`)
-      const endDate = new Date(parseInt(year), parseInt(month), 0) // Last day of month
-      const endDateString = `${year}-${month.padStart(2, '0')}-${endDate.getDate()}T23:59:59.999Z`
-      
-      stories = await prisma.story.findMany({
-        where: { 
-          userId: userId,
-          storyDate: {
-            gte: startDate,
-            lte: new Date(endDateString)
-          }
-        },
-        orderBy: { storyDate: 'asc' }
-      })
-    } else {
-      // Get recent stories (fallback)
-      stories = await prisma.story.findMany({
-        where: { userId: userId },
-        orderBy: { storyDate: 'desc' },
-        take: 10
-      })
+      } catch (e) {
+        console.warn("Failed to parse cached data, clearing cache", e)
+        await redis.del(cacheKey)
+      }
     }
 
-    return NextResponse.json({
-      success: true,
-      data: stories,
-      ...(Array.isArray(stories) && { count: stories.length })
+    const oAuth2Client = new google.auth.OAuth2()
+    oAuth2Client.setCredentials({ access_token: accessToken })
+    const sheets = google.sheets({ version: "v4", auth: oAuth2Client })
+
+    const sheetName = "Journal - Homework for Life"
+    const readResponse = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: `${sheetName}!A:B`,
     })
 
-  } catch (error) {
-    console.error('Error mengambil stories:', error)
-    return NextResponse.json({ error: 'Gagal mengambil data jurnal' }, { status: 500 })
-  } finally {
-    await prisma.$disconnect()
+    const rows = readResponse.data.values || []
+    let result: any = null
+
+    if (storyDate) {
+      const row = rows.find(r => r[0] === storyDate)
+      result = row ? { date: row[0], content: row[1] } : null
+    } else if (month && year) {
+      const stories = rows.filter((r, idx) => idx > 0 && r[0]).map(r => ({ date: r[0], content: r[1] })).filter(story => {
+        const d = new Date(story.date)
+        return (d.getMonth() + 1 === Number(month) && d.getFullYear() === Number(year))
+      })
+      result = stories
+    }
+
+    let ttlSeconds = 600
+
+    if (storyDate) {
+      if (storyDate === today) {
+        ttlSeconds = 120
+      } else {
+        const now = new Date()
+        const endOfDay = new Date(now)
+        endOfDay.setHours(23, 59, 59, 999)
+        ttlSeconds = Math.ceil((endOfDay.getTime() - now.getTime()) / 1000)
+      }
+    }
+
+    const dataToCache = storyDate === today ? { data: result, cachedAt: Date.now() } : result
+    await redis.set(cacheKey, JSON.stringify(dataToCache), { ex: ttlSeconds })
+    console.log(`Data cached with TTL: ${ttlSeconds} seconds`)
+
+    return NextResponse.json(result)
+  } catch (error: any) {
+    console.error("Error in GET handler: ", error)
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
 
-// POST - Membuat story/jurnal baru
 export async function POST(request: NextRequest) {
   try {
+    const session = await auth()
+    if (!session?.accessToken) { return NextResponse.json({ error: "Unauthorized" }, { status: 401 })}
+
     const body = await request.json()
-    const { content, storyDate, userId } = body
+    const { storyDate, content } = body
 
-    if (!content || !storyDate || !userId) {
-      return NextResponse.json({ error: 'Content, tanggal, dan user ID diperlukan' }, { status: 400 })
+    if (!storyDate || !content) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      )
     }
 
-    if (content.trim().length === 0) {
-      return NextResponse.json({ error: 'Content jurnal tidak boleh kosong' }, { status: 400 })
+    const oAuth2Client = new google.auth.OAuth2()
+    oAuth2Client.setCredentials({ access_token: session.accessToken })
+    const sheets = google.sheets({ version: "v4", auth: oAuth2Client })
+
+    const finalSpreadsheetId = session.user.spreadsheetId
+    if (!finalSpreadsheetId) {
+      return NextResponse.json(
+        { error: "Spreadsheet not initialized for user" },
+        { status: 500 }
+      )
     }
 
-    const story = await prisma.story.create({
-      data: {
-        content: content.trim(),
-        storyDate: new Date(storyDate),
-        userId
+    const sheetName = "Journal - Homework for Life"
+    const meta = await sheets.spreadsheets.get({ spreadsheetId: finalSpreadsheetId })
+
+    if (!meta.data.sheets?.some(s => s.properties?.title === sheetName)) {
+      await sheets.spreadsheets.batchUpdate({
+        spreadsheetId: finalSpreadsheetId,
+        requestBody: {
+          requests: [{ addSheet: { properties: { title: sheetName } } }],
+        }
+      })
+    }
+
+    const readResponse = await sheets.spreadsheets.values.get({
+      spreadsheetId: finalSpreadsheetId,
+      range: `${sheetName}!A:B`,
+    })
+
+    const rows = readResponse.data.values || []
+    let rowIndex = -1
+    let isUpdate = false
+
+    rows.forEach((row, idx) => {
+      if (idx === 0) return
+      if (row[0] === storyDate) {
+        rowIndex = idx
+        isUpdate = true
       }
     })
 
-    return NextResponse.json({
-      success: true,
-      message: 'Jurnal berhasil disimpan',
-      data: story
-    }, { status: 201 })
+    if (rowIndex > -1) {
+      await sheets.spreadsheets.values.update({
+        spreadsheetId: finalSpreadsheetId,
+        range: `${sheetName}!A${rowIndex + 1}:B${rowIndex + 1}`,
+        valueInputOption: "RAW",
+        requestBody: { values: [[storyDate, content]] },
+      })
+    } else {
+      await sheets.spreadsheets.values.append({
+        spreadsheetId: finalSpreadsheetId,
+        range: `${sheetName}!A:B`,
+        valueInputOption: "RAW",
+        requestBody: { values: [[storyDate, content]] },
+      })
+    }
 
-  } catch (error: any) {
-    console.error('Error membuat story:', error)
+    const meta2 = await sheets.spreadsheets.get({ spreadsheetId: finalSpreadsheetId })
+    const sheet = meta2.data.sheets?.find(s => s.properties?.title === sheetName)
+    const sheetId = sheet?.properties?.sheetId
+
+    if (sheetId) {
+      await sheets.spreadsheets.batchUpdate({
+        spreadsheetId: finalSpreadsheetId,
+        requestBody: {
+          requests: [{
+            autoResizeDimensions: { dimensions: { sheetId, dimension: "COLUMNS", startIndex: 0, endIndex: 2 }},
+          },
+          {
+            repeatCell: {
+              range: { sheetId, startRowIndex: 0, endRowIndex: 1 },
+              cell: { userEnteredFormat: { textFormat: { bold: true }}},
+              fields: "userEnteredFormat.textFormat.bold",
+            }
+          }
+        ]}
+      })
+    }
+
+    await invalidateJournalCache(storyDate)
     
-    if (error.code === 'P2002') {
-      return NextResponse.json({ error: 'Jurnal untuk tanggal ini sudah ada. Gunakan fitur edit untuk mengubah.' }, { status: 409 })
-    }
+    console.log(`✅ Journal ${isUpdate ? 'updated' : 'created'} and cache invalidated for ${storyDate}`)
 
-    return NextResponse.json({ error: 'Gagal menyimpan jurnal. Silakan coba lagi.' }, { status: 500 })
-  } finally {
-    await prisma.$disconnect()
-  }
-}
-
-export async function PUT(request: NextRequest) {
-  try {
-    const body = await request.json()
-    const { id, content, userId } = body
-
-    if (!id || !content || !userId) {
-      return NextResponse.json({ error: 'ID, content, dan user ID diperlukan' }, { status: 400 })
-    }
-
-    if (content.trim().length === 0) {
-      return NextResponse.json({ error: 'Content jurnal tidak boleh kosong' }, { status: 400 })
-    }
-
-    // Cek ownership
-    const existingStory = await prisma.story.findUnique({
-      where: { id: id }
-    })
-
-    if (!existingStory) {
-      return NextResponse.json({ error: 'Jurnal tidak ditemukan' }, { status: 404 })
-    }
-
-    if (existingStory.userId !== userId) {
-      return NextResponse.json({ error: 'Tidak memiliki akses untuk mengedit jurnal ini' }, { status: 403 })
-    }
-
-    // Update jurnal
-    const updatedStory = await prisma.story.update({
-      where: { id: id },
-      data: {
-        content: content.trim()
-      }
-    })
 
     return NextResponse.json({
       success: true,
-      message: 'Jurnal berhasil diperbarui',
-      data: updatedStory
-    }, { status: 200 })
-
+      spreadsheetId: finalSpreadsheetId,
+      updated: isUpdate,
+      message: `Journal entry ${isUpdate ? 'updated' : 'created'} successfully`
+    })
   } catch (error: any) {
-    console.error('Error updating story:', error)
-    return NextResponse.json({ error: 'Gagal memperbarui jurnal' }, { status: 500 })
-  } finally {
-    await prisma.$disconnect()
+    console.error("Error saving story:", error)
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
