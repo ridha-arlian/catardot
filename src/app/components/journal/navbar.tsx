@@ -1,6 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { useRouter } from "next/navigation"
 import React, { useState, useEffect } from "react"
 import { useSession, signOut } from "next-auth/react"
 import { ColorModeButton } from "@/components/ui/color-mode"
@@ -10,6 +11,7 @@ import { Flex, HStack, Button, Avatar, Menu, Portal, VStack, Heading, Text, Skel
 const MotionFlex = motion.create(Flex)
 
 export const Navbar = () => {
+  const router = useRouter()
   const { data: session } = useSession()
   const [supabase] = useState(() => createClient())
   const [scrolled, setScrolled] = useState(false)
@@ -70,7 +72,7 @@ export const Navbar = () => {
             <Portal>
               <Menu.Positioner>
                 <Menu.Content>
-                  <Menu.Item value="account" textStyle="selectNav">
+                  <Menu.Item value="account" textStyle="selectNav" onClick={() => router.push("/profile")}>
                     Account
                   </Menu.Item>
                   <Menu.Item value="settings" textStyle="selectNav">

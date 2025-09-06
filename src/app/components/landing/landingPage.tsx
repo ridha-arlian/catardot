@@ -2,11 +2,11 @@
 
 import { useState } from "react"
 import { signIn } from "next-auth/react"
+import { Footer } from "../journal/footer"
 import { ColorModeButton } from "@/components/ui/color-mode"
 import { BookOpen, CalendarDays, Sparkles, Heart, Leaf } from "lucide-react"
 import { SheetsIcons, NotionIcons, GoogleIcons } from "@/components/icons/iconsDarkMode"
 import { Box, Container, VStack, Text, Button, Card, Heading, Icon, SimpleGrid, GridItem, Spinner } from "@chakra-ui/react"
-import { Footer } from "../journal/footer"
 
 export const LandingPage = () => {
   const [isLoading, setIsLoading] = useState(false)

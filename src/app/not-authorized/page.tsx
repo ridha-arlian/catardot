@@ -1,7 +1,7 @@
 "use client"
 import { ShieldIcon } from "lucide-react"
-import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 import { Box, VStack, Heading, Text, Button, Center } from "@chakra-ui/react"
 
 export default function NotAuthorizedPage() {
