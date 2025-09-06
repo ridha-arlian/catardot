@@ -26,6 +26,9 @@ importers:
       '@supabase/ssr':
         specifier: ^0.6.1
         version: 0.6.1(@supabase/supabase-js@2.57.2)
+      '@supabase/supabase-js':
+        specifier: ^2.57.2
+        version: 2.57.2
       '@upstash/redis':
         specifier: ^1.35.3
         version: 1.35.3

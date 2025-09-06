@@ -20,6 +20,7 @@
     "@prisma/client": "^6.14.0",
     "@prisma/extension-accelerate": "^2.0.2",
     "@supabase/ssr": "^0.6.1",
+    "@supabase/supabase-js": "^2.57.2",
     "@upstash/redis": "^1.35.3",
     "framer-motion": "^12.23.12",
     "googleapis": "^156.0.0",
