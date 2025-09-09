@@ -1,7 +1,7 @@
-import { google } from "googleapis"
-import { Session } from "next-auth"
-import { Account } from "@/generated/prisma"
-import { updateAccessToken } from "./user-auth-session-model.server"
+import { google } from 'googleapis'
+import { Session } from 'next-auth'
+import { Account } from '@/generated/prisma'
+import { updateAccessToken } from './user-auth-session-model.server'
 
 export const isAccessTokenExpired = (expiresAt: number | null | undefined) : boolean => {
   if (!expiresAt) return true
@@ -17,7 +17,7 @@ export const refreshAndUpdateAccessToken = async (account: Account) : Promise<st
     const updatedAccessToken = await updateAccessToken(account, refreshed)
     return updatedAccessToken
   } catch (error) {
-    console.error("Error refreshing access token: ", error)
+    console.error('Error refreshing access token: ', error)
     return null
   }
 }
@@ -38,9 +38,9 @@ export const refreshAccessToken = async (account: Account) => {
       refreshToken: credentials.refresh_token ?? account.refresh_token,
     }
   } catch (error) {
-    console.error("Error refreshing access token: ", error)
+    console.error('Error refreshing access token: ', error)
     return {
-      accessToken: account.access_token ?? "",
+      accessToken: account.access_token ?? '',
       refreshToken: account.refresh_token,
     }
   }

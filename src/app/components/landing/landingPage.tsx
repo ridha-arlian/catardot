@@ -124,7 +124,7 @@ export const LandingPage = () => {
             </SimpleGrid>
                         
             {/* Login card */}
-            <Card.Root bg="inherit" maxW="md" w="full" mx="auto" shadow="sm" border="2px solid" borderColor={{ base:"sage.500", _dark:"sage.500" }}>
+            <Card.Root bg="inherit" maxW="md" w="full" mx="auto" shadow="sm" border="2px solid" borderColor="sage.500">
               <Card.Header textAlign="center" pb={2}>
                 <Heading textStyle="headingLPLogin">
                   Begin Your Journey
@@ -135,7 +135,7 @@ export const LandingPage = () => {
               </Card.Header>
               <Card.Body>
                 <VStack gap={4}>
-                  <Button w="full" bg="white" color="gray.800" border="1px solid" borderColor={{ base:"sage.500", _dark:"sage.500" }} _hover={{ bg: { base:"brand.100", _dark:"sage.100" }}} textStyle="googleLPLogin" onClick={handleGoogleSignIn} disabled={isLoading} position="relative">
+                  <Button w="full" bg="white" color="gray.800" border="1px solid" borderColor="sage.500" _hover={{ bg: { base:"brand.100", _dark:"sage.100" }}} textStyle="googleLPLogin" onClick={handleGoogleSignIn} disabled={isLoading} position="relative">
                     {isLoading ? (
                       <>
                         <Spinner borderWidth="2px" animationDuration="0.65s" color="blue.500" size="sm" mr={2}/>
@@ -161,7 +161,7 @@ export const LandingPage = () => {
             <Box w="full">
               <SimpleGrid columns={{ base: 1, md: 2 }} gap={10} mt="12">
                 {/* Feature Card */}
-                <Box position="relative" p={6} rounded="2xl" bg="inherit" shadow="sm" border="2px solid" borderColor={{ base:"sage.500", _dark:"sage.500" }} overflow="hidden" textAlign="center">
+                <Box position="relative" p={6} rounded="2xl" bg="inherit" shadow="sm" border="2px solid" borderColor="sage.500" overflow="hidden" textAlign="center">
                   
                   {/* Background Icon */}
                   <Icon as={SheetsIcons} boxSize="43" color="brand.100" position="absolute" top="50%" left="50%" transform="translate(-50%, -50%) rotate(-20deg)" opacity={0.2} zIndex={0}/>
@@ -181,7 +181,7 @@ export const LandingPage = () => {
                 </Box>
 
                 {/* Next Update Card */}
-                <Box position="relative" p={6} rounded="2xl" bg="bg.subtle" shadow="sm" border="2px dashed" borderColor={{ base:"sage.500", _dark:"sage.500" }} overflow="hidden" textAlign="center">
+                <Box position="relative" p={6} rounded="2xl" bg="bg.subtle" shadow="sm" border="2px dashed" borderColor="sage.500" overflow="hidden" textAlign="center">
                   
                   {/* Background Icon */}
                   <Icon as={NotionIcons} boxSize="36" color="gray.200" position="absolute" top="50%" left="50%" transform="translate(-50%, -50%) rotate(25deg)" opacity={0.12}/>
@@ -225,6 +225,7 @@ export const LandingPage = () => {
           </VStack>
         </Container>
 
+        {/* Footer */}
         <Footer/>
       </Box>
     </>

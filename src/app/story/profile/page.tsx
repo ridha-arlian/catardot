@@ -1,106 +1,100 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client"
 
-import {
-  Box,
-  Container,
-  Input,
-  Button,
-  Text,
-  VStack,
-  HStack,
-  IconButton,
-  useClipboard,
-  Card, Flex
-} from "@chakra-ui/react"
-import { ExternalLink, LogOut, FileSpreadsheet, BookOpen, Copy, Check } from "lucide-react"
+import React from "react"
+import { LogOut } from "lucide-react"
+import { useSession, signOut } from "next-auth/react"
 import { Navbar } from "@/app/components/journal/navbar"
+import { Avatar, Box, Button, Flex, Heading, HStack, Stack, Text, VStack, SkeletonCircle, Clipboard, IconButton, Input, InputGroup, Badge, Skeleton } from "@chakra-ui/react"
 
 export default function ProfilePage() {
-  const spreadsheetUrl = "https://docs.google.com/spreadsheets/d/your-spreadsheet-id"
-  // const { hasCopied, onCopy } = useClipboard(spreadsheetUrl)
+  const { data: session, status } = useSession()
 
-  const handleLogout = () => {
-    console.log("Logging out...")
+  const isLoading = status === "loading"
+
+  const generateSpreadsheetUrl = (spreadsheetId: string) => {
+    return `https://docs.google.com/spreadsheets/d/${spreadsheetId}`
   }
 
-  const handleSpreadsheetClick = () => {
-    window.open(spreadsheetUrl, "_blank")
+  const ClipboardIconButton = () => {
+    return (
+      <Clipboard.Trigger asChild>
+        <IconButton variant="outline" color="gray.500" borderColor="sage.500" border="2px solid" _hover={{ color: "brand.500", borderColor: "brand.500", bg:"inherit" }} size="xs" me="-2">
+          <Clipboard.Indicator />
+        </IconButton>
+      </Clipboard.Trigger>
+    )
   }
 
   return (
-    <Box minH="100vh" bg="bg.canvas" py={{ base: 8, md: 12 }}>
-      <Navbar/>
-      <Container  h="100%">
-        <Flex minH="100vh" align="center" justify="center">
-          <Card.Root border="1px solid" borderColor={{ base: "sage.300", _dark: "sage.600" }} shadow="md" rounded="2xl" overflow="hidden">
-          {/* <Card.Header borderBottom="1px solid" borderColor="sage.200">
-            <Text fontSize="lg" fontWeight="semibold">
-              Profile Settings
-            </Text>
-          </Card.Header> */}
+    <Flex minH="100vh" align="center" justify="center" p={4} bg="bg.canvas">
 
-          <Card.Body>
-            <VStack gap={6} align="stretch">
-              {/* Spreadsheet Link */}
-              <Box>
-                <HStack mb={2} gap={2}>
-                  <FileSpreadsheet size={18} />
-                  <Text fontSize="sm" fontWeight="medium">
-                    Spreadsheet Link
-                  </Text>
-                </HStack>
-                <HStack gap={2}>
-                  <Input
-                    value={spreadsheetUrl}
-                    // isReadOnly
-                    borderColor="sage.200"
-                    _hover={{ borderColor: "sage.300" }}
-                  />
-                  <IconButton
-                    aria-label="Copy Link"
-                    // onClick={onCopy}
-                    variant="outline"
-                    size="sm"
-                    borderColor="sage.200"
-                    // icon={hasCopied ? <Check size={16} /> : <Copy size={16} />}
-                  />
-                  <IconButton
-                    aria-label="Open Spreadsheet"
-                    onClick={handleSpreadsheetClick}
-                    variant="outline"
-                    size="sm"
-                    borderColor="sage.200"
-                    // icon={<ExternalLink size={16} />}
-                  />
-                </HStack>
+      {/* Navbar */}
+      <Navbar/>
+
+      <Box w="full" maxW="md" bg="inherit" border="2px solid" shadow="sm" borderColor="sage.500" borderRadius="xl" backdropFilter="blur(8px)" p={8}>
+        
+        {isLoading ? (
+          <VStack gap={6} textAlign="center">
+            <SkeletonCircle size="20" border="1px solid" borderColor="gray.600"/>
+            
+            <Stack gap={2} w="full" align="center">
+              <Skeleton height="32px" width="200px" borderRadius="md" />
+              <Skeleton height="20px" width="250px" borderRadius="md" />
+            </Stack>
+
+            <Box w="full" mt={4}>
+              <Skeleton height="24px" width="150px" borderRadius="md" mx="auto" mb={3} />
+              <Skeleton height="40px" width="full" borderRadius="md" />
+            </Box>
+
+            <Skeleton height="40px" width="full" borderRadius="md" mt={2} />
+          </VStack>
+        ) : (
+          <>
+            <VStack gap={4} textAlign="center">
+              <Box position="relative" display="inline-block">
+                <Avatar.Root size={{ base: "lg", sm: "md", md: "lg", lg: "lg", xl: "lg" }}>
+                  <Avatar.Fallback name={session?.user?.name ?? "User"} />
+                  <Avatar.Image src={session?.user?.image ?? "https://bit.ly/sage-adebayo"} />
+                </Avatar.Root>
               </Box>
 
-              {/* Notion Connect */}
-              <Button
-                // leftIcon={<BookOpen size={18} />}
-                variant="outline"
-                borderColor="sage.200"
-                justifyContent="flex-start"
-              >
-                Connect to Notion
-              </Button>
+              <Stack gap={1}>
+                <Heading textStyle="headingProfile" color={{ base: "brand.500", _dark: "white" }}>
+                  {session?.user?.name}
+                </Heading>
+                <HStack justify="center" gap={2}>
+                  <Badge textStyle="subHeadingProfile" bg="inherit" p={1} color="gray.500">
+                    {session?.user?.email}
+                  </Badge>
+                </HStack>
+              </Stack>
             </VStack>
-          </Card.Body>
 
-          <Card.Footer borderTop="1px solid" borderColor="sage.200">
-            <Button
-              onClick={handleLogout}
-              // leftIcon={<LogOut size={18} />}
-              colorScheme="red"
-              w="full"
-            >
+            <Box my={6}>
+              <Text color={{ base: "brand.500", _dark: "white" }} mb={3} textAlign="center" textStyle="headingSheetsProfile">
+                My Spreadsheets
+              </Text>
+              <Stack gap={2}>
+                {session?.user?.spreadsheetId && (
+                  <Clipboard.Root color="gray.500" value={generateSpreadsheetUrl(session.user.spreadsheetId)}>
+                    <InputGroup w="full" textStyle="linkSheetsProfile" endElement={<ClipboardIconButton />}>
+                      <Clipboard.Input border="2px solid" borderColor="sage.500" asChild>
+                        <Input />
+                      </Clipboard.Input>
+                    </InputGroup>
+                  </Clipboard.Root>
+                )}
+              </Stack>
+            </Box>
+            
+            <Button w="full" textStyle="buttonProfile" variant="outline" border="2px solid" borderColor="red.200" color="red.600" _hover={{ bg: "red.500", color: "white", borderColor: "red.500" }} onClick={() => signOut({ callbackUrl: '/' })}>
+              <LogOut size={16}/>
               Logout
             </Button>
-          </Card.Footer>
-        </Card.Root>
-        </Flex>
-      </Container>
-    </Box>
+          </>
+        )}
+      </Box>
+    </Flex>
   )
 }

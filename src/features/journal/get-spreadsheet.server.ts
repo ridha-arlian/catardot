@@ -1,16 +1,16 @@
-import { google } from "googleapis"
+import { google } from 'googleapis'
 
 export async function getOrCreateSpreadsheet(accessToken: string, userEmail: string) {
   try {
     const auth = new google.auth.OAuth2()
     auth.setCredentials({ access_token: accessToken })
     
-    const drive = google.drive({ version: "v3", auth })
-    const sheets = google.sheets({ version: "v4", auth })
+    const drive = google.drive({ version: 'v3', auth })
+    const sheets = google.sheets({ version: 'v4', auth })
 
     const searchResponse = await drive.files.list({
       q: `name='Catardot Journal - ${userEmail}' and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false`,
-      fields: "files(id, name)",
+      fields: 'files(id, name)',
     })
 
     if (searchResponse.data.files?.length) {
@@ -19,7 +19,7 @@ export async function getOrCreateSpreadsheet(accessToken: string, userEmail: str
         await sheets.spreadsheets.get({ spreadsheetId })
         return spreadsheetId
       } catch (err) {
-        console.warn("Spreadsheet found but not accessible, will create new:", err)
+        console.warn('Spreadsheet found but not accessible, will create new:', err)
       }
     }
 
@@ -27,12 +27,12 @@ export async function getOrCreateSpreadsheet(accessToken: string, userEmail: str
       requestBody: {
         properties: { title: `Catardot Journal - ${userEmail}` },
         sheets: [{
-          properties: { title: "Journal - Homework for Life" },
+          properties: { title: 'Journal - Homework for Life' },
           data: [{
             rowData: [{
               values: [
-                { userEnteredValue: { stringValue: "Date" } },
-                { userEnteredValue: { stringValue: "Story" } },
+                { userEnteredValue: { stringValue: 'Date' } },
+                { userEnteredValue: { stringValue: 'Story' } },
               ],
             }],
           }],
@@ -44,14 +44,13 @@ export async function getOrCreateSpreadsheet(accessToken: string, userEmail: str
     const firstSheetId = createResponse.data.sheets?.[0].properties?.sheetId
 
     if (!spreadsheetId || firstSheetId === undefined) {
-      throw new Error("Spreadsheet creation failed")
+      throw new Error('Spreadsheet creation failed')
     }
 
     await sheets.spreadsheets.batchUpdate({
       spreadsheetId,
       requestBody: {
         requests: [{
-          // Bold + background abu2 di header
           repeatCell: {
             range: {
               sheetId: firstSheetId,
@@ -62,39 +61,38 @@ export async function getOrCreateSpreadsheet(accessToken: string, userEmail: str
               userEnteredFormat: {
                 textFormat: { bold: true },
                 backgroundColor: { red: 0.9, green: 0.9, blue: 0.9 },
-                horizontalAlignment: "CENTER",
+                horizontalAlignment: 'CENTER',
               }
             },
-            fields: "userEnteredFormat(textFormat,backgroundColor,horizontalAlignment)",
+            fields: 'userEnteredFormat(textFormat,backgroundColor,horizontalAlignment)',
           }
         },
         {
-          // Freeze header
           updateSheetProperties: {
             properties: {
               sheetId: firstSheetId,
               gridProperties: { frozenRowCount: 1 }
             },
-            fields: "gridProperties.frozenRowCount",
+            fields: 'gridProperties.frozenRowCount',
           }
         },
         {
           updateDimensionProperties: {
             range: {
               sheetId: firstSheetId,
-              dimension: "COLUMNS",
+              dimension: 'COLUMNS',
               startIndex: 1,
               endIndex: 2,
             },
             properties: { pixelSize: 400 },
-            fields: "pixelSize",
+            fields: 'pixelSize',
           },
         },
         {
           autoResizeDimensions: {
             dimensions: {
               sheetId: firstSheetId,
-              dimension: "COLUMNS",
+              dimension: 'COLUMNS',
               startIndex: 1,
               endIndex: 2,
             }
@@ -105,7 +103,7 @@ export async function getOrCreateSpreadsheet(accessToken: string, userEmail: str
 
     return spreadsheetId
   } catch (error) {
-    console.error("Error with spreadsheet:", error)
+    console.error('Error with spreadsheet: ', error)
     return null
   }
 }

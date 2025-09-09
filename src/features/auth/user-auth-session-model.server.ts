@@ -1,10 +1,10 @@
-import { prop } from "ramda"
-import { prisma } from "@/prisma"
-import { Session } from "next-auth"
+import { prop } from 'ramda'
+import { prisma } from '@/prisma'
+import { Session } from 'next-auth'
 
 export const getGoogleAccountByEmail = async (email: string) => prisma.account.findFirst({
   where: {
-    provider: "google",
+    provider: 'google',
     user: { email },
   }
 })
@@ -16,14 +16,14 @@ type Account = {
 }
 
 export const updateAccessToken = async (account: Account, refreshed: Record<string, unknown>): Promise<string> => {
-  const accessToken = prop("accessToken", refreshed) as string
-  const refreshToken = (prop("refreshToken", refreshed) as string) ?? (account.refresh_token as string)
+  const accessToken = prop('accessToken', refreshed) as string
+  const refreshToken = (prop('refreshToken', refreshed) as string) ?? (account.refresh_token as string)
   const expiresAt = Math.floor(Date.now() / 1000) + 3600
 
   await prisma.account.update({
     where: {
       provider_providerAccountId: {
-        provider: "google",
+        provider: 'google',
         providerAccountId: account.providerAccountId,
       }
     },

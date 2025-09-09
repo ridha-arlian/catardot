@@ -1,9 +1,9 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { useRouter } from "next/navigation"
 import React, { useState, useEffect } from "react"
 import { useSession, signOut } from "next-auth/react"
+import { useRouter, usePathname } from "next/navigation"
 import { ColorModeButton } from "@/components/ui/color-mode"
 import { createClient, setSupabaseAuth } from "@/utils/supabase/supabase.client"
 import { Flex, HStack, Button, Avatar, Menu, Portal, VStack, Heading, Text, SkeletonCircle } from "@chakra-ui/react"
@@ -12,19 +12,13 @@ const MotionFlex = motion.create(Flex)
 
 export const Navbar = () => {
   const router = useRouter()
-  const { data: session } = useSession()
+  const pathname = usePathname()
+  const { data: session, status } = useSession()
   const [supabase] = useState(() => createClient())
   const [scrolled, setScrolled] = useState(false)
   
-  const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    if (session === undefined) {
-      setIsLoading(true)
-    } else {
-      setIsLoading(false)
-    }
-  }, [session])
+  const isLoading = status === "loading"
+  const isAccountPage = pathname === "/story/profile"
 
   useEffect(() => {
     if (session?.supabaseAccessToken) {
@@ -72,12 +66,15 @@ export const Navbar = () => {
             <Portal>
               <Menu.Positioner>
                 <Menu.Content>
-                  <Menu.Item value="account" textStyle="selectNav" onClick={() => router.push("/profile")}>
-                    Account
-                  </Menu.Item>
-                  <Menu.Item value="settings" textStyle="selectNav">
-                    Settings
-                  </Menu.Item>
+                  {isAccountPage ? (
+                    <Menu.Item value="story" textStyle="selectNav" onClick={() => router.push("/story")}>
+                      Story
+                    </Menu.Item>
+                  ) : (
+                    <Menu.Item value="account" textStyle="selectNav" onClick={() => router.push("/story/profile")}>
+                      Account
+                    </Menu.Item>
+                  )}
                   <Menu.Item value="logout" textStyle="selectNav" onClick={() => signOut({ callbackUrl: "/" })} >
                     Logout
                   </Menu.Item>

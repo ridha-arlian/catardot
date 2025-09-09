@@ -1,11 +1,11 @@
-import { redis } from "@/app/lib/redis"
+import { redis } from '@/app/lib/redis'
 
 export async function invalidateJournalCache(date: string) {
   try {
     const d = new Date(date)
     const month = d.getMonth() + 1
     const year = d.getFullYear()
-    const cacheKeys = [`story:${date}`, `stories:${year}-${month}`]
+    const cacheKeys = [`story: ${date}`, `stories: ${year}-${month}`]
     
     if (d.getDate() <= 3) {
       const prevMonth = month === 1 ? 12 : month - 1

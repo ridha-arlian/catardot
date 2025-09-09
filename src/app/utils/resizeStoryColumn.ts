@@ -1,9 +1,9 @@
-import { google } from "googleapis"
+import { google } from 'googleapis'
 
 export async function resizeStoryColumn(accessToken: string, spreadsheetId: string, sheetId: number) {
   const auth = new google.auth.OAuth2()
   auth.setCredentials({ access_token: accessToken })
-  const sheets = google.sheets({ version: "v4", auth })
+  const sheets = google.sheets({ version: 'v4', auth })
 
   try {
     await sheets.spreadsheets.batchUpdate({
@@ -13,7 +13,7 @@ export async function resizeStoryColumn(accessToken: string, spreadsheetId: stri
           autoResizeDimensions: {
             dimensions: {
               sheetId,
-              dimension: "COLUMNS",
+              dimension: 'COLUMNS',
               startIndex: 1,
               endIndex: 2,
             }
@@ -23,6 +23,6 @@ export async function resizeStoryColumn(accessToken: string, spreadsheetId: stri
     })
     
   } catch (err) {
-    console.error("❌ Error resizing Story column:", err)
+    console.error('Error resizing Story column: ', err)
   }
 }

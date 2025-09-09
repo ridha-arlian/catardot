@@ -1,12 +1,12 @@
-import jwt from "jsonwebtoken"
-import NextAuth from "next-auth"
-import { prisma } from "@/prisma"
-import Google from "next-auth/providers/google"
-import { PrismaAdapter } from "@auth/prisma-adapter"
-import { getGoogleAccountByEmail } from "@/features/auth/user-auth-session-model.server"
-import { isAccessTokenExpired, refreshAndUpdateAccessToken } from "@/features/auth/authentication-helpers-server"
+import jwt from 'jsonwebtoken'
+import NextAuth from 'next-auth'
+import { prisma } from '@/prisma'
+import Google from 'next-auth/providers/google'
+import { PrismaAdapter } from '@auth/prisma-adapter'
+import { getGoogleAccountByEmail } from '@/features/auth/user-auth-session-model.server'
+import { isAccessTokenExpired, refreshAndUpdateAccessToken } from '@/features/auth/authentication-helpers-server'
 
-declare module "next-auth" {
+declare module 'next-auth' {
   interface Session {
     accessToken?: string
     refreshToken?: string
@@ -16,19 +16,19 @@ declare module "next-auth" {
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
-  pages: { signIn: "/" },
+  pages: { signIn: '/' },
   session: {
-    strategy: "database", // Karena Anda pakai PrismaAdapter
-    maxAge: 30 * 24 * 60 * 60, // 30 hari
+    strategy: 'database',
+    maxAge: 30 * 24 * 60 * 60,
   },
   providers: [
     Google({
       authorization: {
         params: {
-          prompt: "consent",
-          access_type: "offline",
-          response_type: "code",
-          scope: "openid email profile https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive",
+          prompt: 'consent',
+          access_type: 'offline',
+          response_type: 'code',
+          scope: 'openid email profile https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive',
         }
       }
     })
@@ -43,7 +43,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         sameSite: 'lax',
         path: '/',
         secure: process.env.NODE_ENV === 'production',
-        maxAge: 30 * 24 * 60 * 60 // 30 hari
+        maxAge: 30 * 24 * 60 * 60
       }
     }
   },
@@ -71,17 +71,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return token
     },
     async session({ session, user }) {
-      console.log("Session callback - user: ", user)
-      console.log("Session callback - session.user.email: ", session.user.email)
+      console.log('Session callback - user: ', user)
+      console.log('Session callback - session.user.email: ', session.user.email)
       
       const signingSecret = process.env.SUPABASE_JWT_SECRET
       if (signingSecret) {
         const payload = {
-          aud: "authenticated",
+          aud: 'authenticated',
           exp: Math.floor(new Date(session.expires).getTime() / 1000),
           sub: user.id,
           email: user.email,
-          role: "authenticated",
+          role: 'authenticated',
         }
         session.supabaseAccessToken = jwt.sign(payload, signingSecret)
       }
@@ -92,7 +92,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user = {
           ...session.user,
           id: user.id,
-          spreadsheetId: user.spreadsheetId || "",
+          spreadsheetId: user.spreadsheetId || '',
         }
         
         return session
@@ -103,7 +103,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.user = {
         ...session.user,
         id: user.id,
-        spreadsheetId: user.spreadsheetId || "",
+        spreadsheetId: user.spreadsheetId || '',
       }
 
       session.accessToken = accessToken ?? undefined
@@ -111,5 +111,5 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }
   },
   secret: process.env.AUTH_SECRET,
-  debug: process.env.NODE_ENV === "development",
+  debug: process.env.NODE_ENV === 'development',
 })

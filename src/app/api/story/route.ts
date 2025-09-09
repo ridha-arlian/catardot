@@ -1,29 +1,29 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { google } from "googleapis"
-import { auth } from "../../../../auth"
-import { redis } from "@/app/lib/redis"
-import { NextRequest, NextResponse } from "next/server"
-import { invalidateJournalCache } from "@/app/utils/invalidate-cache"
+import { google } from 'googleapis'
+import { auth } from '../../../../auth'
+import { redis } from '@/app/lib/redis'
+import { NextRequest, NextResponse } from 'next/server'
+import { invalidateJournalCache } from '@/app/utils/invalidate-cache'
 
 export async function GET(request: NextRequest) {
   try {
     const session = await auth()
     if (!session || !session.accessToken || !session.user?.spreadsheetId) {
       return NextResponse.json(
-        { error: "Unauthorized" },
+        { error: 'Unauthorized' },
         { status: 401 }
       )
     }
 
     const { searchParams } = new URL(request.url)
-    const storyDate = searchParams.get("storyDate")
-    const month = searchParams.get("month")
-    const year = searchParams.get("year")
-    const forceRefresh = searchParams.get("refresh") === "true"
+    const storyDate = searchParams.get('storyDate')
+    const month = searchParams.get('month')
+    const year = searchParams.get('year')
+    const forceRefresh = searchParams.get('refresh') === 'true'
 
     if (!storyDate && !(month && year)) {
       return NextResponse.json(
-        { error: "Missing parameters (storyDate OR month+year required)" },
+        { error: 'Missing parameters (storyDate OR month+year required)' },
         { status: 400 }
       )
     }
@@ -39,34 +39,34 @@ export async function GET(request: NextRequest) {
 
     if (cached && !forceRefresh) {
       try {
-        const cachedData = typeof cached === "string" ? JSON.parse(cached) : cached
+        const cachedData = typeof cached === 'string' ? JSON.parse(cached) : cached
         
         if (storyDate === today) {
           const cacheAge = Date.now() - (cachedData.cachedAt || 0)
-          const maxAge = 2 * 60 * 1000 // 2 minute
+          const maxAge = 2 * 60 * 1000
           
           if (cacheAge > maxAge) {
-            console.log("Cache expired for today's data, fetching fresh data")
+            console.log('Cache expired for today\s data, fetching fresh data')
             await redis.del(cacheKey)
           } else {
-            console.log("Returning fresh data from Redis cache")
+            console.log('Returning fresh data from Redis cache')
             return NextResponse.json(cachedData.data)
           }
         } else {
-          console.log("Returning historical data from Redis cache")
+          console.log('Returning historical data from Redis cache')
           return NextResponse.json(cachedData.data || cachedData)
         }
       } catch (e) {
-        console.warn("Failed to parse cached data, clearing cache", e)
+        console.warn('Failed to parse cached data, clearing cache', e)
         await redis.del(cacheKey)
       }
     }
 
     const oAuth2Client = new google.auth.OAuth2()
     oAuth2Client.setCredentials({ access_token: accessToken })
-    const sheets = google.sheets({ version: "v4", auth: oAuth2Client })
+    const sheets = google.sheets({ version: 'v4', auth: oAuth2Client })
 
-    const sheetName = "Journal - Homework for Life"
+    const sheetName = 'Journal - Homework for Life'
     const readResponse = await sheets.spreadsheets.values.get({
       spreadsheetId,
       range: `${sheetName}!A:B`,
@@ -105,7 +105,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(result)
   } catch (error: any) {
-    console.error("Error in GET handler: ", error)
+    console.error('Error in GET handler: ', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
@@ -113,31 +113,31 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await auth()
-    if (!session?.accessToken) { return NextResponse.json({ error: "Unauthorized" }, { status: 401 })}
+    if (!session?.accessToken) { return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })}
 
     const body = await request.json()
     const { storyDate, content } = body
 
     if (!storyDate || !content) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: 'Missing required fields' },
         { status: 400 }
       )
     }
 
     const oAuth2Client = new google.auth.OAuth2()
     oAuth2Client.setCredentials({ access_token: session.accessToken })
-    const sheets = google.sheets({ version: "v4", auth: oAuth2Client })
+    const sheets = google.sheets({ version: 'v4', auth: oAuth2Client })
 
     const finalSpreadsheetId = session.user.spreadsheetId
     if (!finalSpreadsheetId) {
       return NextResponse.json(
-        { error: "Spreadsheet not initialized for user" },
+        { error: 'Spreadsheet not initialized for user' },
         { status: 500 }
       )
     }
 
-    const sheetName = "Journal - Homework for Life"
+    const sheetName = 'Journal - Homework for Life'
     const meta = await sheets.spreadsheets.get({ spreadsheetId: finalSpreadsheetId })
 
     if (!meta.data.sheets?.some(s => s.properties?.title === sheetName)) {
@@ -170,14 +170,14 @@ export async function POST(request: NextRequest) {
       await sheets.spreadsheets.values.update({
         spreadsheetId: finalSpreadsheetId,
         range: `${sheetName}!A${rowIndex + 1}:B${rowIndex + 1}`,
-        valueInputOption: "RAW",
+        valueInputOption: 'RAW',
         requestBody: { values: [[storyDate, content]] },
       })
     } else {
       await sheets.spreadsheets.values.append({
         spreadsheetId: finalSpreadsheetId,
         range: `${sheetName}!A:B`,
-        valueInputOption: "RAW",
+        valueInputOption: 'RAW',
         requestBody: { values: [[storyDate, content]] },
       })
     }
@@ -191,13 +191,13 @@ export async function POST(request: NextRequest) {
         spreadsheetId: finalSpreadsheetId,
         requestBody: {
           requests: [{
-            autoResizeDimensions: { dimensions: { sheetId, dimension: "COLUMNS", startIndex: 0, endIndex: 2 }},
+            autoResizeDimensions: { dimensions: { sheetId, dimension: 'COLUMNS', startIndex: 0, endIndex: 2 }},
           },
           {
             repeatCell: {
               range: { sheetId, startRowIndex: 0, endRowIndex: 1 },
               cell: { userEnteredFormat: { textFormat: { bold: true }}},
-              fields: "userEnteredFormat.textFormat.bold",
+              fields: 'userEnteredFormat.textFormat.bold',
             }
           }
         ]}
@@ -216,7 +216,7 @@ export async function POST(request: NextRequest) {
       message: `Journal entry ${isUpdate ? 'updated' : 'created'} successfully`
     })
   } catch (error: any) {
-    console.error("Error saving story:", error)
+    console.error('Error saving story: ', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }

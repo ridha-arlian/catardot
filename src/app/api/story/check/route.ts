@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { google } from "googleapis"
-import { auth } from "../../../../../auth"
-import { NextResponse } from "next/server"
+import { google } from 'googleapis'
+import { auth } from '../../../../../auth'
+import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
   try {
     const session = await auth()
 
     if (!session || !session.accessToken) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const body = await request.json()
@@ -16,7 +16,7 @@ export async function POST(request: Request) {
 
     if (!storyDate || !spreadsheetId) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: 'Missing required fields' },
         { status: 400 }
       )
     }
@@ -24,10 +24,10 @@ export async function POST(request: Request) {
     const oAuth2Client = new google.auth.OAuth2()
     oAuth2Client.setCredentials({ access_token: session.accessToken })
 
-    const sheets = google.sheets({ version: "v4", auth: oAuth2Client })
+    const sheets = google.sheets({ version: 'v4', auth: oAuth2Client })
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: "Journal - Homework for Life!A:C",
+      range: 'Journal - Homework for Life!A:C',
     })
 
     const rows = response.data.values || []
@@ -35,13 +35,13 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       exists: !!existingEntry,
-      story: existingEntry?.[1] ?? "",
+      story: existingEntry?.[1] ?? '',
       storyDate: existingEntry?.[0] ?? storyDate,
     })
   } catch (error: any) {
-    console.error("Error checking story:", error)
+    console.error('Error checking story: ', error)
     return NextResponse.json(
-      { error: error.message || "Internal server error" },
+      { error: error.message || 'Internal server error' },
       { status: 500 }
     )
   }
