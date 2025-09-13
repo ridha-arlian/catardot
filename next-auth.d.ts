@@ -12,3 +12,10 @@ declare module "next-auth" {
     spreadsheetId?: string;
   }
 }
+// declare module "next-auth/jwt" {
+//   interface JWT {
+//     userId?: string;
+//     accessToken?: string;
+//     refreshToken?: string;
+//   }
+// }

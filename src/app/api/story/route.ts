@@ -1,42 +1,64 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { google } from 'googleapis'
-import { auth } from '../../../../auth'
 import { redis } from '@/app/lib/redis'
+import { auth } from '../../../../auth'
+import { userService } from '@/app/lib/userService'
 import { NextRequest, NextResponse } from 'next/server'
 import { invalidateJournalCache } from '@/app/utils/invalidate-cache'
 
 export async function GET(request: NextRequest) {
   try {
     const session = await auth()
-    if (!session || !session.accessToken || !session.user?.spreadsheetId) {
+    if (!session || !session.accessToken || !session.user?.email) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       )
     }
-
+    
+    const user = await userService.getUserByEmail(session.user.email)
+    if (!user?.spreadsheet_id) {
+      return NextResponse.json(
+        { error: 'No spreadsheet found for user' },
+        { status: 400 }
+      )
+    }
+    
     const { searchParams } = new URL(request.url)
+    const userOnly = searchParams.get('userOnly') === 'true'
+    
+    if (userOnly) {
+      return NextResponse.json({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        image: user.image,
+        role: user.role,
+        spreadsheet_id: user.spreadsheet_id
+      })
+    }
+    
     const storyDate = searchParams.get('storyDate')
     const month = searchParams.get('month')
     const year = searchParams.get('year')
     const forceRefresh = searchParams.get('refresh') === 'true'
-
+    
     if (!storyDate && !(month && year)) {
       return NextResponse.json(
         { error: 'Missing parameters (storyDate OR month+year required)' },
         { status: 400 }
       )
     }
-
-    const spreadsheetId = session.user.spreadsheetId
+    
+    const spreadsheetId = user.spreadsheet_id
     const accessToken = session.accessToken
     const cacheKey = storyDate ? `story:${storyDate}` : `stories:${year}-${month}`
     const today = new Date().toISOString().split('T')[0]
-
+    
     let cached = null
-
+    
     if (!forceRefresh) cached = await redis.get(cacheKey)
-
+    
     if (cached && !forceRefresh) {
       try {
         const cachedData = typeof cached === 'string' ? JSON.parse(cached) : cached
@@ -46,7 +68,7 @@ export async function GET(request: NextRequest) {
           const maxAge = 2 * 60 * 1000
           
           if (cacheAge > maxAge) {
-            console.log('Cache expired for today\s data, fetching fresh data')
+            console.log('Cache expired for today\'s data, fetching fresh data')
             await redis.del(cacheKey)
           } else {
             console.log('Returning fresh data from Redis cache')
@@ -61,20 +83,17 @@ export async function GET(request: NextRequest) {
         await redis.del(cacheKey)
       }
     }
-
+    
     const oAuth2Client = new google.auth.OAuth2()
     oAuth2Client.setCredentials({ access_token: accessToken })
     const sheets = google.sheets({ version: 'v4', auth: oAuth2Client })
-
+    
     const sheetName = 'Journal - Homework for Life'
-    const readResponse = await sheets.spreadsheets.values.get({
-      spreadsheetId,
-      range: `${sheetName}!A:B`,
-    })
-
+    const readResponse = await sheets.spreadsheets.values.get({ spreadsheetId, range: `${sheetName}!A:B` })
+    
     const rows = readResponse.data.values || []
     let result: any = null
-
+    
     if (storyDate) {
       const row = rows.find(r => r[0] === storyDate)
       result = row ? { date: row[0], content: row[1] } : null
@@ -85,9 +104,9 @@ export async function GET(request: NextRequest) {
       })
       result = stories
     }
-
+    
     let ttlSeconds = 600
-
+    
     if (storyDate) {
       if (storyDate === today) {
         ttlSeconds = 120
@@ -98,11 +117,11 @@ export async function GET(request: NextRequest) {
         ttlSeconds = Math.ceil((endOfDay.getTime() - now.getTime()) / 1000)
       }
     }
-
+    
     const dataToCache = storyDate === today ? { data: result, cachedAt: Date.now() } : result
     await redis.set(cacheKey, JSON.stringify(dataToCache), { ex: ttlSeconds })
     console.log(`Data cached with TTL: ${ttlSeconds} seconds`)
-
+    
     return NextResponse.json(result)
   } catch (error: any) {
     console.error('Error in GET handler: ', error)
@@ -113,33 +132,36 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await auth()
-    if (!session?.accessToken) { return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })}
-
+    if (!session?.accessToken || !session.user?.email) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    
+    const user = await userService.getUserByEmail(session.user.email)
+    
+    if (!user?.spreadsheet_id) {
+      return NextResponse.json(
+        { error: 'Spreadsheet not initialized for user' },
+        { status: 400 }
+      )
+    }
+    
     const body = await request.json()
     const { storyDate, content } = body
-
+    
     if (!storyDate || !content) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
       )
     }
-
+    
     const oAuth2Client = new google.auth.OAuth2()
     oAuth2Client.setCredentials({ access_token: session.accessToken })
     const sheets = google.sheets({ version: 'v4', auth: oAuth2Client })
-
-    const finalSpreadsheetId = session.user.spreadsheetId
-    if (!finalSpreadsheetId) {
-      return NextResponse.json(
-        { error: 'Spreadsheet not initialized for user' },
-        { status: 500 }
-      )
-    }
-
+    
+    const finalSpreadsheetId = user.spreadsheet_id
     const sheetName = 'Journal - Homework for Life'
+    
     const meta = await sheets.spreadsheets.get({ spreadsheetId: finalSpreadsheetId })
-
+    
     if (!meta.data.sheets?.some(s => s.properties?.title === sheetName)) {
       await sheets.spreadsheets.batchUpdate({
         spreadsheetId: finalSpreadsheetId,
@@ -148,16 +170,13 @@ export async function POST(request: NextRequest) {
         }
       })
     }
-
-    const readResponse = await sheets.spreadsheets.values.get({
-      spreadsheetId: finalSpreadsheetId,
-      range: `${sheetName}!A:B`,
-    })
-
+    
+    const readResponse = await sheets.spreadsheets.values.get({ spreadsheetId: finalSpreadsheetId, range: `${sheetName}!A:B` })
+    
     const rows = readResponse.data.values || []
     let rowIndex = -1
     let isUpdate = false
-
+    
     rows.forEach((row, idx) => {
       if (idx === 0) return
       if (row[0] === storyDate) {
@@ -165,7 +184,7 @@ export async function POST(request: NextRequest) {
         isUpdate = true
       }
     })
-
+    
     if (rowIndex > -1) {
       await sheets.spreadsheets.values.update({
         spreadsheetId: finalSpreadsheetId,
@@ -181,11 +200,11 @@ export async function POST(request: NextRequest) {
         requestBody: { values: [[storyDate, content]] },
       })
     }
-
+    
     const meta2 = await sheets.spreadsheets.get({ spreadsheetId: finalSpreadsheetId })
     const sheet = meta2.data.sheets?.find(s => s.properties?.title === sheetName)
     const sheetId = sheet?.properties?.sheetId
-
+    
     if (sheetId) {
       await sheets.spreadsheets.batchUpdate({
         spreadsheetId: finalSpreadsheetId,
@@ -203,12 +222,11 @@ export async function POST(request: NextRequest) {
         ]}
       })
     }
-
+    
     await invalidateJournalCache(storyDate)
     
     console.log(`✅ Journal ${isUpdate ? 'updated' : 'created'} and cache invalidated for ${storyDate}`)
-
-
+    
     return NextResponse.json({
       success: true,
       spreadsheetId: finalSpreadsheetId,

@@ -10,7 +10,7 @@
     "studio": "prisma studio",
     "migrate": "prisma migrate dev",
     "generate": "prisma generate",
-    "db-push": "prisma db push",
+    "db": "prisma db push",
     "chakra": "chakra typegen ./src/components/theme.ts --watch"
   },
   "dependencies": {
@@ -24,6 +24,7 @@
     "@upstash/redis": "^1.35.3",
     "framer-motion": "^12.23.12",
     "googleapis": "^156.0.0",
+    "jose": "^6.1.0",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.540.0",
     "next": "15.5.0",

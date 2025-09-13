@@ -10,13 +10,19 @@ export default function NotAuthorizedPage() {
   const [countdown, setCountdown] = useState(3)
 
   useEffect(() => {
-    if (countdown === 0) {
-      router.push("/")
-      return
-    }
-    const timer = setTimeout(() => setCountdown((c) => c - 1), 1000)
-    return () => clearTimeout(timer)
-  }, [countdown, router])
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer)
+          router.push("/")
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [router])
 
   const handleRedirectNow = () => router.push("/")
 

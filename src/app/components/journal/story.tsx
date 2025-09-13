@@ -3,10 +3,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
-import { useEffect, useState, useRef } from "react"
 import { useSession } from "next-auth/react"
 import { BookOpen } from "lucide-react"
 import { toaster } from "@/components/ui/toaster"
+import { useEffect, useState, useRef } from "react"
 import { getRandomPrompts } from "@/app/utils/prompt"
 import { motion, AnimatePresence } from "framer-motion"
 import { History } from "@/app/components/journal/history"

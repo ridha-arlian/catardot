@@ -38,6 +38,9 @@ importers:
       googleapis:
         specifier: ^156.0.0
         version: 156.0.0
+      jose:
+        specifier: ^6.1.0
+        version: 6.1.0
       jsonwebtoken:
         specifier: ^9.0.2
         version: 9.0.2
