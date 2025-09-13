@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { prisma } from '@/prisma'
 
 export const userService = {
@@ -25,7 +26,6 @@ export const userService = {
           encrypt_spreadsheet_id(${spreadsheetId})
         )
       `
-      
       return await this.getUserById(otherData.id!)
     } else {
       return await prisma.user.create({ data: { ...otherData, role: otherData.role || 'authenticated' } })
