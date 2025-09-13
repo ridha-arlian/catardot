@@ -81,7 +81,7 @@ export const StatusWidget = ({ refreshTrigger, onStatusChange, onSpreadsheetCrea
       }
     } else if (status === "authenticated" || status === "unauthenticated") {
       setIsLoading(false)
-      prevSpreadsheetId.current = currentSpreadsheetId
+      prevSpreadsheetId.current = currentSpreadsheetId ?? undefined
       if (!currentSpreadsheetId) {
         hasCheckedCurrentSpreadsheet.current = undefined
       }
