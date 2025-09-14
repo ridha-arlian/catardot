@@ -430,7 +430,7 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
                   <VStack align="center">
                     <Textarea textStyle="placeholderStoryBoxEdit" placeholder={prompts.promptContent} value={storyContent} onChange={(e) => setStoryContent(e.target.value)} minH="120px" autoresize/>
                     <Button variant="outline" border="1px solid" borderColor="sage.500" _hover={{ bg: { base:"brand.100", _dark:"sage.100" }, color:{ _dark:"fg.default" }}} textStyle="ButtonStoryBoxEdit" onClick={handleSaveStory} disabled={!storyContent.trim() || isCheckingExisting}>
-                      Save Today's Story
+                      Save Today&apos;s Story
                     </Button>
                   </VStack>
                 </VStack>
