@@ -34,6 +34,7 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
   const { data: session, status } = useSession()
   const [supabase] = useState(() => createClient())
   const [isSettingUpSpreadsheet, setIsSettingUpSpreadsheet] = useState(false)
+  const [hasShownSuccessToaster, setHasShownSuccessToaster] = useState(false)
   const [isSpreadsheetReady, setIsSpreadsheetReady] = useState(false)
   const [lastSaveTime, setLastSaveTime] = useState(0)
   const [isEditMode, setIsEditMode] = useState(false)
@@ -187,58 +188,49 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
     setIsEditMode(true)
     setFabStatus(false)
   }
-  
+
   const setupSpreadsheet = async () => {
     if (setupInProgress.current) return
     setupInProgress.current = true
     
-    const setupPromise = (async () => {
+    try {
       const response = await fetch("/api/sheets", { 
         method: "POST",
         credentials: "include"
       })
       
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
-      const data = await response.json()
-      if (!data.spreadsheetId) throw new Error("No spreadsheet ID returned")
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`)
+      }
       
-      setupAttempted.current = true
+      const data = await response.json()
+      
+      if (!data.spreadsheetId) throw new Error("No spreadsheet ID returned")
+
       setIsSpreadsheetReady(true)
       setSpreadsheetCreatedTrigger(prev => prev + 1)
       return data
-    })()
-
-    toaster.promise(setupPromise, {
-      success: {
-        title: "Journal Ready!",
-        description: "Your personal journal spreadsheet has been created successfully.",
-        duration: 5000,
-        closable: true,
-      },
-      error: {
+      
+    } catch (error) {
+      console.error("Setup spreadsheet error:", error)
+      
+      toaster.create({
         title: "Setup Failed",
         description: "There was an issue setting up your journal.",
+        type: "error",
         duration: 10000,
         closable: true,
         action: {
           label: "Retry Setup",
           onClick: () => {
-            setupAttempted.current = false
             setupInProgress.current = false
             setupSpreadsheet()
           }
         }
-      },
-      loading: {
-        title: "Setting Up Your Journal",
-        description: "Creating your personal journal space..."
-      },
-    })
-
-    try {
-      await setupPromise
-    } catch (error) {
-      setupInProgress.current = false
+      })
+      
+      throw error
     } finally {
       setupInProgress.current = false
     }
@@ -292,20 +284,20 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
       checkExistingJournal(selectedDate)
     }
   }, [selectedDate, isSpreadsheetReady, session?.accessToken])
-  
+
   useEffect(() => {
-    if (status === "authenticated" && session?.user?.email && !session.user.spreadsheetId && !setupAttempted.current && !isSettingUpSpreadsheet) {
+    if (status === "authenticated" && session?.user?.email && !session.user.spreadsheetId && !setupInProgress.current) {
       setupSpreadsheet()
     }
   }, [status, session?.user?.spreadsheetId, session?.user?.email])
 
   useEffect(() => {
     if (status === "unauthenticated") {
-      setupAttempted.current = false
       setupInProgress.current = false
       setIsSpreadsheetReady(false)
       setFabStatus(null)
       setFabLoading(true)
+      setHasShownSuccessToaster(false)
     }
   }, [status])
 
