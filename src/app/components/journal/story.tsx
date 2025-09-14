@@ -89,11 +89,13 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
         setExistingJournal(journalData)
         setTodayEntry(data.content)
         setStoryContent("")
+        setIsEditMode(false)
         setFabStatus(true)
       } else {
         setExistingJournal(null)
         setTodayEntry("")
         setStoryContent("")
+        setIsEditMode(false)
         setFabStatus(false)
       }
       setLastCheckedDate(date)
@@ -101,6 +103,7 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
       setExistingJournal(null)
       setTodayEntry("")
       setStoryContent("")
+      setIsEditMode(false)
       setFabStatus(false)
     } finally {
       setIsCheckingExisting(false)
@@ -148,7 +151,6 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
 
     const isUpdate = Boolean(todayEntry)
     const savePromise = saveStoryToAPI(storyContent, selectedDate)
-    
     createToasterPromise(savePromise, isUpdate ? "Story Updated Successfully!" : "Story Saved Successfully!", "Saving...")
 
     try {
@@ -180,16 +182,14 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
   }
 
   const editTodayEntry = () => {
+    const contentToEdit = existingJournal?.content || todayEntry || ""
+    setStoryContent(contentToEdit)
     setIsEditMode(true)
     setFabStatus(false)
   }
   
   const setupSpreadsheet = async () => {
-    if (setupInProgress.current) {
-      console.log("Setup already in progress, skipping...")
-      return
-    }
-
+    if (setupInProgress.current) return
     setupInProgress.current = true
     
     const setupPromise = (async () => {
@@ -199,9 +199,7 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
       })
       
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
-      
       const data = await response.json()
-      
       if (!data.spreadsheetId) throw new Error("No spreadsheet ID returned")
       
       setupAttempted.current = true
@@ -324,6 +322,12 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
   useEffect(() => {
     if (status === "unauthenticated") setIsEditMode(false)
   }, [status])
+
+  useEffect(() => {
+    if (existingJournal?.content && todayEntry !== existingJournal.content) {
+      setTodayEntry(existingJournal.content)
+    }
+  }, [existingJournal?.content, todayEntry])
 
   const displayStatus = fabStatus !== null ? fabStatus : journalStatus
   
