@@ -20,7 +20,8 @@ const MotionBox = motion.create(Box)
 interface StoryProps { onJournalSaved?: (journalData: any) => void }
 
 export const Story = ({ onJournalSaved }: StoryProps) => {
-  const [isLoading, setIsLoading] = useState(false)
+  // const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [todayEntry, setTodayEntry] = useState("")
   const [selectedDate, setSelectedDate] = useState("")
   const [storyContent, setStoryContent] = useState("")
@@ -262,6 +263,7 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
 
   useEffect(() => {
     if (selectedDate && session?.user?.spreadsheetId && session?.accessToken) {
+      setIsLoading(true)
       checkExistingJournal(selectedDate)
     }
   }, [selectedDate, session?.user?.spreadsheetId, session?.accessToken])
@@ -281,6 +283,7 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
 
   useEffect(() => {
     if (selectedDate && isSpreadsheetReady && session?.accessToken) {
+      setIsLoading(true)
       checkExistingJournal(selectedDate)
     }
   }, [selectedDate, isSpreadsheetReady, session?.accessToken])
@@ -352,7 +355,7 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
         <Box as="main" maxW="4xl" mx="auto" px={6} py={6}>
           <VStack gap={8} align="stretch" mb={12}>
             <Box bg="bg.canvas" border="2px solid" borderColor="sage.500" shadow="sm" rounded="md" p={8}>
-              {isLoading ? (
+              {isLoading || isCheckingExisting || (status === "authenticated" && !isSpreadsheetReady && fabLoading) ? (
                 <VStack gap={6} align="stretch">
                   <Skeleton height="40px" border="1px solid" borderColor="gray.600" />
                   <Skeleton height="40px" border="1px solid" borderColor="gray.600" />
