@@ -35,7 +35,9 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
   const [supabase] = useState(() => createClient())
   const [isSettingUpSpreadsheet, setIsSettingUpSpreadsheet] = useState(false)
   const [isSpreadsheetReady, setIsSpreadsheetReady] = useState(false)
-  const hasWrittenToday = Boolean(existingJournal)
+  const [lastSaveTime, setLastSaveTime] = useState(0)
+  const [isEditMode, setIsEditMode] = useState(false)
+  const hasWrittenToday = Boolean(existingJournal?.content)
   const [spreadsheetCreatedTrigger, setSpreadsheetCreatedTrigger] = useState(0)
   
   const [fabStatus, setFabStatus] = useState<boolean | null>(null)
@@ -75,13 +77,18 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
 
     try {
       const response = await fetch(`/api/story?storyDate=${date}`, { credentials: "include" })
-      if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`) }
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
       const data = await response.json()
 
       if (data && data.content) {
-        setExistingJournal({ storyDate: date })
+        const journalData = { 
+          storyDate: date, 
+          content: data.content 
+        }
+      
+        setExistingJournal(journalData)
         setTodayEntry(data.content)
-        setStoryContent(data.content)
+        setStoryContent("")
         setFabStatus(true)
       } else {
         setExistingJournal(null)
@@ -91,7 +98,6 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
       }
       setLastCheckedDate(date)
     } catch (error) {
-      console.error("Error checking existing journal:", error)
       setExistingJournal(null)
       setTodayEntry("")
       setStoryContent("")
@@ -101,11 +107,6 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
       setIsLoading(false)
       setFabLoading(false)
     }
-  }
-
-  const triggerGlobalRefresh = () => {
-    setRefreshTrigger((prev) => prev + 1)
-    console.log("Story component triggering global refresh")
   }
 
   const showEmptyContentWarning = () => {
@@ -145,45 +146,44 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
       return
     }
 
-    const isUpdate = Boolean(existingJournal)
+    const isUpdate = Boolean(todayEntry)
     const savePromise = saveStoryToAPI(storyContent, selectedDate)
     
-    createToasterPromise(
-      savePromise,
-      isUpdate ? "Story Updated Successfully!" : "Story Saved Successfully!",
-      "Saving..."
-    )
+    createToasterPromise(savePromise, isUpdate ? "Story Updated Successfully!" : "Story Saved Successfully!", "Saving...")
 
     try {
       const result = await savePromise
+      const updatedContent = storyContent
       
-      setExistingJournal({ storyDate: selectedDate })
-      setTodayEntry(storyContent)
-      setLastCheckedDate("")
+      const journalData = { 
+        storyDate: selectedDate, 
+        content: updatedContent 
+      }
+      
+      setExistingJournal(journalData)
+      setTodayEntry(updatedContent)
+      setStoryContent("")
+      setIsEditMode(false)
       setFabStatus(true)
+      setIsLoading(false)
+      setIsCheckingExisting(false)
       
       if (!isUpdate) {
-        setStoryContent("")
         refreshPrompts()
       }
       
       onJournalSaved?.(result)
-      triggerGlobalRefresh()
-      
-      console.log(`Journal ${isUpdate ? 'updated' : 'saved'} successfully: `, result)
-      
+      setLastSaveTime(Date.now()) 
     } catch (error) {
       console.error("Error saving story: ", error)
     }
   }
 
   const editTodayEntry = () => {
-    setExistingJournal(null)
-    setTodayEntry("")
-    setStoryContent(todayEntry || "")
+    setIsEditMode(true)
     setFabStatus(false)
   }
-
+  
   const setupSpreadsheet = async () => {
     if (setupInProgress.current) {
       console.log("Setup already in progress, skipping...")
@@ -193,29 +193,20 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
     setupInProgress.current = true
     
     const setupPromise = (async () => {
-      console.log("Setting up spreadsheet for user:", session?.user?.email)
-      
       const response = await fetch("/api/sheets", { 
         method: "POST",
         credentials: "include"
       })
       
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
       
       const data = await response.json()
       
-      if (!data.spreadsheetId) {
-        throw new Error("No spreadsheet ID returned")
-      }
+      if (!data.spreadsheetId) throw new Error("No spreadsheet ID returned")
       
-      console.log("Spreadsheet setup successful:", data.spreadsheetId)
       setupAttempted.current = true
       setIsSpreadsheetReady(true)
-
       setSpreadsheetCreatedTrigger(prev => prev + 1)
-      
       return data
     })()
 
@@ -249,7 +240,6 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
     try {
       await setupPromise
     } catch (error) {
-      console.error("Setup failed:", error)
       setupInProgress.current = false
     } finally {
       setupInProgress.current = false
@@ -257,7 +247,6 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
   }
 
   const handleStatusChange = (hasJournal: boolean) => {
-    console.log("Status change received from StatusWidget:", hasJournal)
     setJournalStatus(hasJournal)
     if (fabStatus !== hasJournal) {
       setFabStatus(hasJournal)
@@ -272,8 +261,8 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
   
   useEffect(() => {
     if (refreshTrigger > 0 && selectedDate) {
-      console.log("Refresh trigger detected, re-checking existing journal")
-      checkExistingJournal(selectedDate)
+      const shouldSkipRefresh = existingJournal?.storyDate === selectedDate && existingJournal?.content && Date.now() - lastSaveTime < 2000
+      if (!shouldSkipRefresh) checkExistingJournal(selectedDate)
     }
   }, [refreshTrigger])
 
@@ -293,7 +282,7 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
         setIsSpreadsheetReady(true)
       } else {
         setIsSpreadsheetReady(false)
-        setFabLoading(true) // Keep FAB loading until spreadsheet is ready
+        setFabLoading(true)
       }
     } else {
       setFabLoading(true)
@@ -307,14 +296,7 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
   }, [selectedDate, isSpreadsheetReady, session?.accessToken])
   
   useEffect(() => {
-    if (
-      status === "authenticated" &&
-      session?.user?.email && 
-      !session.user.spreadsheetId && 
-      !setupAttempted.current &&
-      !isSettingUpSpreadsheet
-    ) {
-      console.log("Conditions met for spreadsheet setup, initiating...")
+    if (status === "authenticated" && session?.user?.email && !session.user.spreadsheetId && !setupAttempted.current && !isSettingUpSpreadsheet) {
       setupSpreadsheet()
     }
   }, [status, session?.user?.spreadsheetId, session?.user?.email])
@@ -335,7 +317,21 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
     }
   }, [isSpreadsheetReady, selectedDate])
 
+  useEffect(() => {
+    setIsEditMode(false)
+  }, [selectedDate])
+
+  useEffect(() => {
+    if (status === "unauthenticated") setIsEditMode(false)
+  }, [status])
+
   const displayStatus = fabStatus !== null ? fabStatus : journalStatus
+  
+  const cancelEdit = () => {
+    setStoryContent("")
+    setIsEditMode(false)
+    setFabStatus(true)
+  }
   
   return (
     <>
@@ -367,25 +363,32 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
                   <Skeleton height="120px" border="1px solid" borderColor="gray.600"/>
                   <Skeleton height="40px" border="1px solid" borderColor="gray.600"/>
                 </VStack>
-              ) : !hasWrittenToday ? (
+              ) : isEditMode ? (
                 <VStack gap={6} align="stretch">
                   <VStack gap={3} textAlign="center">
                     <Heading textStyle="headingTextStoryBoxEdit" color={{ base:"brand.600", _dark:"white" }}>
-                      What&apos;s Your Story Today?
+                      {hasWrittenToday ? "Edit Today's Story" : "What's Your Story Today?"}
                     </Heading>
-                    <Text color="gray.500" maxW="md" mx="auto" textStyle="subHeadingTextStoryBoxEdit">
-                      Write One Meaningful Moment From Today.
+                    <Text color="gray.500" textStyle="subHeadingTextStoryBoxEdit">
+                      {hasWrittenToday ? "Update your story for today." : "Write One Meaningful Moment From Today."}
                     </Text>
                   </VStack>
-
+                  
                   <VStack align="center">
-                    <Textarea textStyle="placeholderStoryBoxEdit" placeholder={prompts.promptContent} value={storyContent} onChange={(e) => setStoryContent(e.target.value)} minH="120px" disabled={existingJournal} autoresize/>
-                    <Button variant="outline" border="1px solid" borderColor="sage.500" _hover={{ bg: { base:"brand.100", _dark:"sage.100" }, color:{ _dark:"fg.default" }}} textStyle="ButtonStoryBoxEdit" onClick={handleSaveStory} disabled={!storyContent.trim() || existingJournal || isCheckingExisting}>
-                      {existingJournal ? "Story Already Exists" : "Save Today's Story"}
-                    </Button>
+                    <Textarea textStyle="placeholderStoryBoxEdit" placeholder={!hasWrittenToday ? prompts.promptContent : "Write your story here..."} value={storyContent} onChange={(e) => setStoryContent(e.target.value)} minH="120px" autoresize/>
+                    <HStack gap={3}>
+                      <Button variant="outline" border="1px solid" borderColor="sage.500" _hover={{ bg: { base:"brand.100", _dark:"sage.100" }, color:{ _dark:"fg.default" }}} textStyle="ButtonStoryBoxEdit" onClick={handleSaveStory} disabled={!storyContent.trim() || isCheckingExisting}>
+                        {hasWrittenToday ? "Update Story" : "Save Today's Story"}
+                      </Button>
+                      {hasWrittenToday && (
+                        <Button variant="outline" border="1px solid" borderColor="gray.500" _hover={{ bg: "gray.100" }} textStyle="ButtonStoryBoxEdit" onClick={cancelEdit}>
+                          Cancel
+                        </Button>
+                      )}
+                    </HStack>
                   </VStack>
                 </VStack>
-              ) : (
+              ) : hasWrittenToday ? (
                 <VStack gap={6} align="stretch">
                   <VStack gap={3} textAlign="center">
                     <Heading textStyle="headingTextStoryBoxEdit" color={{ base:"brand.600", _dark:"white" }}>
@@ -401,10 +404,35 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
                   </Box>
 
                   <Center>
-                    <Button variant="outline" border="1px solid" borderColor="sage.500" _hover={{ bg: { base:"brand.100", _dark:"sage.500" }, color:{ _dark:"black" }}} textStyle="ButtonStoryBoxEdit" onClick={editTodayEntry}>
+                    <Button 
+                      variant="outline" 
+                      border="1px solid" 
+                      borderColor="sage.500" 
+                      _hover={{ bg: { base:"brand.100", _dark:"sage.500" }, color:{ _dark:"black" }}} 
+                      textStyle="ButtonStoryBoxEdit" 
+                      onClick={editTodayEntry}
+                    >
                       Edit Today&apos;s Story
                     </Button>
                   </Center>
+                </VStack>
+              ) : (
+                <VStack gap={6} align="stretch">
+                  <VStack gap={3} textAlign="center">
+                    <Heading textStyle="headingTextStoryBoxEdit" color={{ base:"brand.600", _dark:"white" }}>
+                      What&apos;s Your Story Today?
+                    </Heading>
+                    <Text color="gray.500" maxW="md" mx="auto" textStyle="subHeadingTextStoryBoxEdit">
+                      Write One Meaningful Moment From Today.
+                    </Text>
+                  </VStack>
+
+                  <VStack align="center">
+                    <Textarea textStyle="placeholderStoryBoxEdit" placeholder={prompts.promptContent} value={storyContent} onChange={(e) => setStoryContent(e.target.value)} minH="120px" autoresize/>
+                    <Button variant="outline" border="1px solid" borderColor="sage.500" _hover={{ bg: { base:"brand.100", _dark:"sage.100" }, color:{ _dark:"fg.default" }}} textStyle="ButtonStoryBoxEdit" onClick={handleSaveStory} disabled={!storyContent.trim() || isCheckingExisting}>
+                      Save Today's Story
+                    </Button>
+                  </VStack>
                 </VStack>
               )}
             </Box>
