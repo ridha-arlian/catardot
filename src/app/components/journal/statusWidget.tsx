@@ -82,7 +82,7 @@ export const StatusWidget = ({ refreshTrigger, onStatusChange, onSpreadsheetCrea
 
   useEffect(() => {
     const initialize = async () => {
-      if (status !== "authenticated") return
+      if (status !== "authenticated" || userReady) return
       
       setIsLoading(true)
       setError(null)
@@ -110,7 +110,7 @@ export const StatusWidget = ({ refreshTrigger, onStatusChange, onSpreadsheetCrea
   }, [status])
 
   useEffect(() => {
-    if (refreshTrigger && refreshTrigger > 0 && userReady) {
+    if (refreshTrigger && refreshTrigger > 0 && userReady && !isLoading && !isChecking.current) {
       checkTodayJournal(true)
     }
   }, [refreshTrigger])
@@ -118,6 +118,10 @@ export const StatusWidget = ({ refreshTrigger, onStatusChange, onSpreadsheetCrea
   useEffect(() => {
     if (onSpreadsheetCreated && onSpreadsheetCreated > 0) {
       setUserReady(false)
+      setIsLoading(true)
+      setError(null)
+      isChecking.current = false
+
       setTimeout(() => {
         if (status === "authenticated") {
           const reinit = async () => {
@@ -132,9 +136,9 @@ export const StatusWidget = ({ refreshTrigger, onStatusChange, onSpreadsheetCrea
           }
           reinit()
         }
-      }, 2000)
+      }, 1000)
     }
-  }, [onSpreadsheetCreated])
+  }, [onSpreadsheetCreated, status])
 
   if (status === "loading" || isLoading) {
     return (
