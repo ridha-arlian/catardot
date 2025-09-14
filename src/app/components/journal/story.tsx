@@ -20,7 +20,6 @@ const MotionBox = motion.create(Box)
 interface StoryProps { onJournalSaved?: (journalData: any) => void }
 
 export const Story = ({ onJournalSaved }: StoryProps) => {
-  // const [isLoading, setIsLoading] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [todayEntry, setTodayEntry] = useState("")
   const [selectedDate, setSelectedDate] = useState("")
@@ -34,7 +33,6 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
   const [journalStatus, setJournalStatus] = useState<boolean | null>(null)
   const { data: session, status } = useSession()
   const [supabase] = useState(() => createClient())
-  const [isSettingUpSpreadsheet, setIsSettingUpSpreadsheet] = useState(false)
   const [hasShownSuccessToaster, setHasShownSuccessToaster] = useState(false)
   const [isSpreadsheetReady, setIsSpreadsheetReady] = useState(false)
   const [lastSaveTime, setLastSaveTime] = useState(0)
@@ -44,8 +42,6 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
   
   const [fabStatus, setFabStatus] = useState<boolean | null>(null)
   const [fabLoading, setFabLoading] = useState(true)
-
-  const setupAttempted = useRef(false)
   const setupInProgress = useRef(false)
 
   const { open, onToggle } = useDisclosure()
@@ -177,7 +173,8 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
       }
       
       onJournalSaved?.(result)
-      setLastSaveTime(Date.now()) 
+      setLastSaveTime(Date.now())
+      setRefreshTrigger(prev => prev + 1)
     } catch (error) {
       console.error("Error saving story: ", error)
     }
@@ -376,11 +373,11 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
                   <VStack align="center">
                     <Textarea textStyle="placeholderStoryBoxEdit" placeholder={!hasWrittenToday ? prompts.promptContent : "Write your story here..."} value={storyContent} onChange={(e) => setStoryContent(e.target.value)} minH="120px" autoresize/>
                     <HStack gap={3}>
-                      <Button variant="outline" border="1px solid" borderColor="sage.500" _hover={{ bg: { base:"brand.100", _dark:"sage.100" }, color:{ _dark:"fg.default" }}} textStyle="ButtonStoryBoxEdit" onClick={handleSaveStory} disabled={!storyContent.trim() || isCheckingExisting}>
+                      <Button variant="outline" border="1px solid" borderColor="sage.500" _hover={{ bg: { base:"brand.100", _dark:"sage.500" }, color:{ _dark:"black" }}} textStyle="ButtonStoryBoxEdit" onClick={handleSaveStory} disabled={!storyContent.trim() || isCheckingExisting}>
                         {hasWrittenToday ? "Update Story" : "Save Today's Story"}
                       </Button>
                       {hasWrittenToday && (
-                        <Button variant="outline" border="1px solid" borderColor="gray.500" _hover={{ bg: "gray.100" }} textStyle="ButtonStoryBoxEdit" onClick={cancelEdit}>
+                        <Button variant="outline" border="1px solid" borderColor="sage.500" _hover={{ bg: { base:"brand.100", _dark:"sage.500" }, color:{ _dark:"black" }}} textStyle="ButtonStoryBoxEdit" onClick={cancelEdit}>
                           Cancel
                         </Button>
                       )}
@@ -403,14 +400,7 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
                   </Box>
 
                   <Center>
-                    <Button 
-                      variant="outline" 
-                      border="1px solid" 
-                      borderColor="sage.500" 
-                      _hover={{ bg: { base:"brand.100", _dark:"sage.500" }, color:{ _dark:"black" }}} 
-                      textStyle="ButtonStoryBoxEdit" 
-                      onClick={editTodayEntry}
-                    >
+                    <Button variant="outline" border="1px solid" borderColor="sage.500" _hover={{ bg: { base:"brand.100", _dark:"sage.500" }, color:{ _dark:"black" }}} textStyle="ButtonStoryBoxEdit" onClick={editTodayEntry}>
                       Edit Today&apos;s Story
                     </Button>
                   </Center>
@@ -428,7 +418,7 @@ export const Story = ({ onJournalSaved }: StoryProps) => {
 
                   <VStack align="center">
                     <Textarea textStyle="placeholderStoryBoxEdit" placeholder={prompts.promptContent} value={storyContent} onChange={(e) => setStoryContent(e.target.value)} minH="120px" autoresize/>
-                    <Button variant="outline" border="1px solid" borderColor="sage.500" _hover={{ bg: { base:"brand.100", _dark:"sage.100" }, color:{ _dark:"fg.default" }}} textStyle="ButtonStoryBoxEdit" onClick={handleSaveStory} disabled={!storyContent.trim() || isCheckingExisting}>
+                    <Button variant="outline" border="1px solid" borderColor="sage.500" _hover={{ bg: { base:"brand.100", _dark:"sage.500" }, color:{ _dark:"black" }}} textStyle="ButtonStoryBoxEdit" onClick={handleSaveStory} disabled={!storyContent.trim() || isCheckingExisting}>
                       Save Today&apos;s Story
                     </Button>
                   </VStack>

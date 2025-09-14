@@ -41,7 +41,7 @@ export const TimeWidget = ({ onDateChange }: TimeWidgetProps) => {
     })
   }
 
-  const pad = (n: number) => n.toString().padStart(2, "0");
+  const pad = (n: number) => n.toString().padStart(2, "0")
 
   useEffect(() => {
     const timer = setInterval(() => {
