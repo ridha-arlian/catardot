@@ -17,6 +17,7 @@
     "@auth/prisma-adapter": "^2.11.1",
     "@chakra-ui/react": "^3.33.0",
     "@emotion/react": "^11.14.0",
+    "@prisma/adapter-pg": "^7.4.1",
     "@prisma/client": "^7.4.1",
     "@prisma/extension-accelerate": "^3.0.1",
     "@supabase/ssr": "^0.8.0",
