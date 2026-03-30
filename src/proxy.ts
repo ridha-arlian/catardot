@@ -2,7 +2,6 @@ import { auth } from '../auth'
 import { redis } from '@/app/lib/redis'
 import { NextResponse } from 'next/server'
 
-// Rate limiting per user/IP
 async function checkRateLimit(identifier: string, limit = 100, windowSec = 60) {
   const key = `ratelimit:${identifier}`
 
