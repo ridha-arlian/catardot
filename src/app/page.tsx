@@ -1,5 +1,6 @@
 import { auth } from "../../auth"
-import { Box } from "@chakra-ui/react"import { redirect } from "next/navigation"
+import { Box } from "@chakra-ui/react"
+import { redirect } from "next/navigation"
 import { LandingPage } from "@/app/components/landing/landingPage"
 
 export default function Home() {
