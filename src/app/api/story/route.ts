@@ -120,7 +120,6 @@ export async function GET(request: NextRequest) {
     
     const dataToCache = storyDate === today ? { data: result, cachedAt: Date.now() } : result
     await redis.set(cacheKey, JSON.stringify(dataToCache), { ex: ttlSeconds })
-    console.log(`Data cached with TTL: ${ttlSeconds} seconds`)
     
     return NextResponse.json(result)
   } catch (error: any) {
@@ -224,8 +223,6 @@ export async function POST(request: NextRequest) {
     }
     
     await invalidateJournalCache(storyDate)
-    
-    console.log(`✅ Journal ${isUpdate ? 'updated' : 'created'} and cache invalidated for ${storyDate}`)
     
     return NextResponse.json({
       success: true,
