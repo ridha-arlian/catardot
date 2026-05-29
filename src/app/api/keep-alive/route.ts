@@ -1,4 +1,3 @@
-// src/app/api/cron/keep-alive/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/prisma";
 
